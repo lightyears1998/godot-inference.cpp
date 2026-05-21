@@ -1,0 +1,6 @@
+*.dll
+*.so
+*.wasm
+*.ilk
+*.7z
+*.zip
