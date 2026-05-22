@@ -5,8 +5,8 @@
 ### CUDA
 
 ``` powershell
-$env:VCPKG_OVERLAY_TRIPLETS="triplets"
-$env:VCPKG_DEFAULT_TRIPLET="x64-windows-ggml-61"
+$env:VCPKG_OVERLAY_PORTS="vcpkg/ports"
+$env:VCPKG_DEFAULT_TRIPLET="x64-windows"
 
 vcpkg install ggml[cuda]
 vcpkg install llama-cpp
