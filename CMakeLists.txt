@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.31)
 # Based on godot-cpp-template
 # https://github.com/godotengine/godot-cpp-template/blob/c5d45ad8abe3f7878bf3fd6b6508a6f1702652cc/CMakeLists.txt
 
-project(godot-LIBNAME
+project(godot-llama-cpp
         VERSION 1.0
         DESCRIPTION "This repository serves as a quickstart template for GDExtension development with Godot 4.0+."
         HOMEPAGE_URL "https://github.com/enetheru/godot-cpp-template/tree/main"
@@ -13,6 +13,10 @@ project(godot-LIBNAME
 # Suppress warning
 if (CMAKE_C_COMPILER)
 endif ()
+
+# Cpp standards
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Configure MSVC
 if (WIN32 AND MSVC)
@@ -30,7 +34,7 @@ if (WIN32 AND MSVC)
     # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-set(LIBNAME "godot_LIBNAME")
+set(LIBNAME "godot_llama_cpp")
 set(GODOT_PROJECT_DIR "project" CACHE STRING "The directory of a Godot project folder")
 
 set(GODOTCPP_TARGET $<IF:$<CONFIG:Debug>,template_debug,template_release>)
@@ -38,6 +42,7 @@ set(GODOTCPP_TARGET $<IF:$<CONFIG:Debug>,template_debug,template_release>)
 # project dependencies
 find_package(fmt CONFIG REQUIRED)
 find_package(gsl-lite CONFIG REQUIRED)
+find_package(llama CONFIG REQUIRED)
 
 # godot-cpp dependencies
 find_package(Python3 3.4 REQUIRED)
@@ -70,6 +75,7 @@ get_target_property(GODOTCPP_PLATFORM godot::cpp GODOTCPP_PLATFORM)
 set(GODOT_PROJECT_BINARY_DIR "${PROJECT_SOURCE_DIR}/${GODOT_PROJECT_DIR}/bin/${GODOTCPP_PLATFORM}")
 file(GLOB_RECURSE DOC_XML LIST_DIRECTORIES NO CONFIGURE_DEPENDS "${PROJECT_SOURCE_DIR}/doc_classes/*.xml")
 
+add_subdirectory(libs)
 add_subdirectory(src)
 
 add_custom_target(package_7z

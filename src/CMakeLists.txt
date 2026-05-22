@@ -9,12 +9,11 @@ add_library(${LIBNAME} SHARED
         image_pack.hpp
 )
 
-set_property(TARGET ${LIBNAME} PROPERTY CXX_STANDARD 23)
-set_property(TARGET ${LIBNAME} PROPERTY CXX_STANDARD_REQUIRED ON)
-
 target_link_libraries(${LIBNAME} PRIVATE
         godot-cpp
         fmt::fmt
+        gsl-lite::gsl-lite
+        llama
 )
 
 set_target_properties(${LIBNAME}
