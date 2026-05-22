@@ -6,6 +6,7 @@
       "binaryDir": "${sourceDir}/cmake-build",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkg/ports",
         "VCPKG_TARGET_TRIPLET": "x64-windows"
       }
     }
