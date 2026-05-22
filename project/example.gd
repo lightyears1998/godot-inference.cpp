@@ -1,11 +1,14 @@
 extends Node
 
+@onready var user_text_edit: TextEdit = %UserTextEdit
+@onready var agent_text_edit: TextEdit = %AgentTextEdit
+@onready var user_confirm_button: Button = %UserConfirmButton
+
 
 func _ready() -> void:
-	var db = GameDB.new()
-	print('db.size() = ', db.size())
-	print('db.get_tree("foo") = ', JSON.stringify(db.get_tree("foo")))
+	user_text_edit.text_commited.connect(submit_text)
+	user_confirm_button.pressed.connect(func (): user_text_edit.commit_text())
 
-	var pck = db.get_image_pack("bar")
-	print('pck.get_reference_count() = ', pck.get_reference_count())
-	print('pck.get_offset(0) = ', pck.get_offset(0))
+
+func submit_text(text: String) -> void:
+	agent_text_edit.text += text + "\n"
