@@ -6,7 +6,10 @@ It serves as a thin wrapper around llama.cpp and allows GDScript to access a hig
 ## When to use this library and alternatives
 
 - Give it a try for fun! :)
-- I've done my best to make it reliable, but for serious production work, check out the alternatives below.
+- Use it when you need to run an LLM locally and optimize for a specific GGML backend, and tools like Ollama or LM Studio don’t meet your needs.
+- Or when you need to ship your fine-tuned model directly with the game binary. Since models are typically several gigabytes, the library’s added file size is negligible in comparison.
+
+I've done my best to make it reliable, but for serious production work, check out the alternatives below.
 
 Alternatives:
 
