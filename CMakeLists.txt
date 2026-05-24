@@ -43,6 +43,7 @@ set(GODOTCPP_TARGET $<IF:$<CONFIG:Debug>,template_debug,template_release>)
 find_package(fmt CONFIG REQUIRED)
 find_package(gsl-lite CONFIG REQUIRED)
 find_package(llama CONFIG REQUIRED)
+find_package(simdutf CONFIG REQUIRED)
 
 # godot-cpp dependencies
 find_package(Python3 3.4 REQUIRED)

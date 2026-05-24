@@ -61,5 +61,6 @@ compile_commands.json
 cmake-build*
 CMakeUserPresets.json
 
-# Temporary workspcae
+# Temporary workspcae and files
 tmp
+*.local.sh

@@ -1,5 +1,6 @@
 #include "utils.hpp"
 
+#include <simdutf.h>
 #include <godot_cpp/variant/packed_byte_array.hpp>
 
 using namespace godot;
@@ -11,6 +12,11 @@ godot::String to_godot_string(const std::string &str) {
 }
 
 std::string to_std_string(const godot::String &str) {
-	const auto bytes = str.to_utf8_buffer();
-	return { reinterpret_cast<const char*>(bytes.ptr()), static_cast<size_t>(bytes.size()) };
+	const auto u32_ptr = str.ptr();
+	const auto u32_len = str.length();
+	const auto u8_len = simdutf::utf8_length_from_utf32(u32_ptr, u32_len);
+
+	std::string ret(u8_len, '\0');
+	(void)simdutf::convert_valid_utf32_to_utf8(u32_ptr, u32_len, ret.data());
+	return ret;
 }

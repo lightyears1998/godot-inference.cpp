@@ -1,12 +1,16 @@
 add_library(${LIBNAME} SHARED
         register_types.cpp
-        register_types.h
+        register_types.hpp
         utils.cpp
         utils.hpp
-        game_db.cpp
-        game_db.hpp
-        image_pack.cpp
-        image_pack.hpp
+        llm_engine.cpp
+        llm_engine.hpp
+        llm_model.cpp
+        llm_model.hpp
+        llm_chat.hpp
+        llm_chat.cpp
+        llm_chat_message.cpp
+        llm_chat_message.hpp
 )
 
 target_link_libraries(${LIBNAME} PRIVATE
@@ -14,6 +18,7 @@ target_link_libraries(${LIBNAME} PRIVATE
         fmt::fmt
         gsl-lite::gsl-lite
         llama
+        simdutf::simdutf
 )
 
 set_target_properties(${LIBNAME}

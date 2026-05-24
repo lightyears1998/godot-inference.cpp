@@ -1,12 +1,12 @@
-#include "register_types.h"
+#include "register_types.hpp"
 
 #include <gdextension_interface.h>
+#include <clocale>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
-#include <clocale>
 
-#include "game_db.hpp"
+#include "llm_engine.hpp"
 
 using namespace godot;
 
@@ -16,8 +16,10 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 		return;
 	}
 
-	GDREGISTER_CLASS(GameDB);
-	GDREGISTER_CLASS(ImagePack);
+	ClassDB::register_abstract_class<LLMEngine>();
+	ClassDB::register_class<LLMModel>();
+	ClassDB::register_class<LLMChat>();
+	ClassDB::register_class<LLMChatMessage>();
 }
 
 void uninitialize_gdextension_types(ModuleInitializationLevel p_level) {
