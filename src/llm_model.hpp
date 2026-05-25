@@ -1,40 +1,38 @@
 #pragma once
 
-#include "llm_chat.hpp"
-
-#include <expected>
-#include <filesystem>
-#include <functional>
-#include <godot_cpp/classes/image.hpp>
+#include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
-#include <godot_cpp/classes/wrapped.hpp>
-#include <godot_cpp/variant/variant.hpp>
-#include <shared_mutex>
+#include <llama.h>
+#include <memory>
 
-class LLMConversationParameters : public godot::Resource {
-	GDCLASS(LLMConversationParameters, Resource);
-
-protected:
-	static void _bind_methods();
-
-private:
-	float context_length_;
-	float temperature_;
-	float top_p_;
-	float top_k_;
-	float min_p_;
-	float presence_penalty_;
-	float repeat_penalty_;
-
-	// -ctk q8_0 -ctv q8_0
-};
+class LLMChat;
+class LLMChatParameters;
+struct llama_model;
+struct llama_context;
 
 class LLMModel : public godot::RefCounted {
-	GDCLASS(LLMModel, RefCounted);
+	GDCLASS(LLMModel, godot::RefCounted);
 
 protected:
 	static void _bind_methods();
 
 public:
-	godot::Ref<LLMChat> begin_chat(godot::Ref<LLMConversationParameters> params);
+	LLMModel() = default;
+	LLMModel(llama_model* model);
+
+	godot::Ref<LLMChat> start_chat(const godot::Ref<LLMChatParameters>& params) const;
+	auto start_exploratory_chat_chat();
+	auto start_rigorous_chat_chat();
+	auto start_general_chat();
+	auto start_intuitive_chat();
+
+	static godot::Ref<LLMChatParameters> get_exploratory_chat_params();
+	static godot::Ref<LLMChatParameters> get_rigorous_chat_params();
+	static godot::Ref<LLMChatParameters> get_general_chat_params();
+	static godot::Ref<LLMChatParameters> get_intuitive_chat_params();
+
+	llama_model* model() const { return model_.get(); }
+
+private:
+	std::unique_ptr<llama_model, decltype(&llama_model_free)> model_ { nullptr, &llama_model_free };
 };

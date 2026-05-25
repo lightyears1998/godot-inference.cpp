@@ -15,6 +15,10 @@ run/main_scene="uid://dh0oj81pufivs"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+LLMBackend="*uid://cvbe67pp24uey"
+
 [display]
 
 window/stretch/mode="canvas_items"

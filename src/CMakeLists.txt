@@ -11,6 +11,9 @@ add_library(${LIBNAME} SHARED
         llm_chat.cpp
         llm_chat_message.cpp
         llm_chat_message.hpp
+        constants.hpp
+        llm_chat_parameters.cpp
+        llm_chat_parameters.hpp
 )
 
 target_link_libraries(${LIBNAME} PRIVATE
@@ -39,3 +42,12 @@ if (DOC_XML)
         target_doc_sources(${LIBNAME} ${DOC_XML})
     endif ()
 endif ()
+
+install(TARGETS ${LIBNAME}
+        COMPONENT ${LIBNAME}
+        RUNTIME_DEPENDENCIES
+        PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+        POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
+        DIRECTORIES "$<TARGET_FILE_DIR:${LIBNAME}>" "$ENV{CUDA_PATH}/bin"
+        DESTINATION "./"
+)

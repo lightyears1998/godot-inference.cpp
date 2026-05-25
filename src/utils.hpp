@@ -5,11 +5,11 @@
 #include <godot_cpp/core/print_string.hpp>
 #include <godot_cpp/variant/string.hpp>
 
-auto gstr(const auto& what) { return to_godot_string(what); }
-auto ustr(const auto& what) { return to_std_string(what); }
-
 godot::String to_godot_string(const std::string &str);
 std::string to_std_string(const godot::String &str);
+
+auto gstr(const auto& what) { return to_godot_string(what); }
+auto ustr(const auto& what) { return to_std_string(what); }
 
 template <typename F, typename... Args>
 [[nodiscard]] auto try_invoke(F &&func, Args&&... args) {

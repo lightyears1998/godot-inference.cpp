@@ -37,9 +37,10 @@ if("cuda" IN_LIST FEATURES)
     # https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md#override-compute-capability-specifications
     # ======
     # Compute Capability
-    # 61: GTX 1060
-    # 75: RTX 2060
-    set(CUDA_ARCHS "61;75-real")
+    # 61: GTX 10 series (eg. GTX 1060)
+    # 75: RTX 20 series (eg. RTX 2060)
+    # 89: RTX 40 series (eg. RTX 4060)
+    set(CUDA_ARCHS "61;75-real;89-real")
 
     list(APPEND FEATURE_OPTIONS
         "-DCMAKE_CUDA_COMPILER=${NVCC}"

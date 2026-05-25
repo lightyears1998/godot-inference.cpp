@@ -1,7 +1,6 @@
 #include "utils.hpp"
 
 #include <simdutf.h>
-#include <godot_cpp/variant/packed_byte_array.hpp>
 
 using namespace godot;
 
