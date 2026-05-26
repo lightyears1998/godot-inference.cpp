@@ -1,15 +1,12 @@
+#include "core/utils.hpp"
+
+#include <fmt/format.h>
+#include <llama.h>
+#include <ggml.h>
 #include <clocale>
 #include <string>
 #include <vector>
 #include <iostream>
-#include <llama.h>
-#include <ggml.h>
-#include <fmt/format.h>
-
-#include "core/utils.hpp"
-
-void print_usage() {
-}
 
 // .\llama-server.exe -m .\models\Qwen3.5-4B-Q4_K_M.gguf --reasoning off -ctk q8_0 -ctv q8_0
 // --ctx-size 16384
@@ -54,7 +51,7 @@ int main(int argc, char** argv) {
 
     // initialize the context
     llama_context_params ctx_params = llama_context_default_params();
-    ctx_params.n_ctx = 2621;
+    ctx_params.n_ctx = 26210;
     ctx_params.n_batch = 2048;
 
     llama_context * ctx = llama_init_from_model(model, ctx_params);
