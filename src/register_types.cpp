@@ -58,6 +58,8 @@ extern "C"
 	{
 		setlocale(LC_ALL, ".UTF8");
 
+		std::set_terminate(library_terminate_handler);
+
 		GDExtensionBinding::InitObject init_obj(p_get_proc_address, p_library, r_initialization);
 		init_obj.register_initializer(initialize_gdextension_types);
 		init_obj.register_terminator(uninitialize_gdextension_types);
