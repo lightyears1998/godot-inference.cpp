@@ -46,6 +46,17 @@ int test1(std::string model_path) {
 	llama_sampler_chain_add(smpl, llama_sampler_init_temp(0.8f));
 	llama_sampler_chain_add(smpl, llama_sampler_init_dist(LLAMA_DEFAULT_SEED));
 
+	std::string test = "<think></think>This is a bad apple, and that too.";
+	std::vector<llama_token> tokens(1024);
+	llama_tokenize(vocab, test.c_str(), test.size(), tokens.data(), tokens.size(), true, true);
+	llama_tokenize(vocab, test.c_str(), test.size(), tokens.data(), tokens.size(), true, false);
+	llama_tokenize(vocab, test.c_str(), test.size(), tokens.data(), tokens.size(), false, false);
+
+	for (auto token : tokens) {
+		auto attr = llama_token_get_attr(vocab, token);
+		std::puts(std::to_string(attr).c_str());
+	}
+
 	// helper function to evaluate a prompt and generate a response
 	auto generate = [&](const std::string &prompt) {
 		std::string response;
@@ -197,8 +208,8 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "%s", text);
 	}, nullptr);
 
-	// test1(model_path);
-	test_double_free(model_path);
+	test1(model_path);
+	// test_double_free(model_path);
 
 	return 0;
 }
