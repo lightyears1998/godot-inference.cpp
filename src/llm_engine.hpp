@@ -26,6 +26,7 @@ public:
 	static void tick();
 	static void free_backend();
 	static void request_load_model(godot::String path);
+	static void unload_model();
 	static ModelStatus model_load_status();
 	static float model_load_progress();
 	static godot::Ref<LLMModel> model();

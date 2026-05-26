@@ -17,8 +17,10 @@ class LLMModel : public godot::RefCounted {
 	GDCLASS(LLMModel, godot::RefCounted);
 
 public:
+	using llama_model_ptr = std::unique_ptr<llama_model, decltype(&llama_model_free)>;
+
 	LLMModel() = default;
-	LLMModel(llama_model* model);
+	LLMModel(llama_model_ptr&& model);
 	~LLMModel() override;
 
 	void tick();
@@ -39,6 +41,6 @@ protected:
 	static void _bind_methods();
 
 private:
-	std::unique_ptr<llama_model, decltype(&llama_model_free)> model_ { nullptr, &llama_model_free };
+	llama_model_ptr model_ { nullptr, &llama_model_free };
 	std::set<godot::ObjectID> chat_oids_;
 };

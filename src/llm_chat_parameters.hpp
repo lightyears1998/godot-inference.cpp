@@ -9,6 +9,7 @@ public:
 	LLMChatParameters() = default;
 
 	int context_length_ = 32768;
+	bool thinking_enabled_ = false;
 	float temperature_ = 0.8f;
 	float top_p_ = 1.0f;
 	int top_k_ = 40;
@@ -18,6 +19,8 @@ public:
 
 	int context_length() const { return context_length_; }
 	void set_context_length(int value) { context_length_ = value; }
+
+	// TODO
 
 	float temperature() const { return temperature_; }
 	void set_temperature(float value) { temperature_ = value; }

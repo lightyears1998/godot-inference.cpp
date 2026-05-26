@@ -17,10 +17,12 @@ add_library(${LIBNAME} SHARED
         threading.cpp
         threading.hpp
         globals.hpp
+        globals.cpp
 )
 
 target_link_libraries(${LIBNAME} PRIVATE
         godot-cpp
+        core
         Boost::assert
         fmt::fmt
         gsl-lite::gsl-lite

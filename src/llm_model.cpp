@@ -22,8 +22,8 @@ void LLMModel::_bind_methods() {
 	ClassDB::bind_static_method("LLMModel", D_METHOD("get_intuitive_chat_params"), &LLMModel::get_intuitive_chat_params);
 }
 
-LLMModel::LLMModel(llama_model* model)
-	: model_(model, llama_model_free) {
+LLMModel::LLMModel(llama_model_ptr &&model)
+	: model_(std::move(model)) {
 	print_line(BOOST_CURRENT_FUNCTION);
 }
 
@@ -51,6 +51,7 @@ void LLMModel::tick() {
 	}
 }
 
+// TODO don't block ui
 godot::Ref<LLMChat> LLMModel::start_chat(const godot::Ref<LLMChatParameters>& params) {
 	if (!model_) {
 		return {};
@@ -65,7 +66,7 @@ godot::Ref<LLMChat> LLMModel::start_chat(const godot::Ref<LLMChatParameters>& pa
 		return {};
 	}
 
-	Ref<LLMChat> chat = memnew(LLMChat(model_.get(), ctx, params));
+	Ref<LLMChat> chat = memnew(LLMChat(this, params));
 	chat_oids_.insert(ObjectID(chat->get_instance_id()));
 	return chat;
 }

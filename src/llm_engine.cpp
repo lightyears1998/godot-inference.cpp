@@ -17,10 +17,9 @@ void LLMEngine::_bind_methods() {
 	BIND_ENUM_CONSTANT(MODEL_LOADING);
 	BIND_ENUM_CONSTANT(MODEL_READY);
 
-	ClassDB::bind_static_method("LLMEngine", D_METHOD("init_backend"), &LLMEngine::init_backend);
 	ClassDB::bind_static_method("LLMEngine", D_METHOD("tick"), &LLMEngine::tick);
-	ClassDB::bind_static_method("LLMEngine", D_METHOD("free_backend"), &LLMEngine::free_backend);
 	ClassDB::bind_static_method("LLMEngine", D_METHOD("request_load_model", "path"), &LLMEngine::request_load_model, DEFVAL(""));
+	ClassDB::bind_static_method("LLMEngine", D_METHOD("unload_model"), &LLMEngine::unload_model);
 	ClassDB::bind_static_method("LLMEngine", D_METHOD("get_model_load_status"), &LLMEngine::model_load_status);
 	ClassDB::bind_static_method("LLMEngine", D_METHOD("get_model_load_progress"), &LLMEngine::model_load_progress);
 	ClassDB::bind_static_method("LLMEngine", D_METHOD("get_model"), &LLMEngine::model);
@@ -76,11 +75,19 @@ void LLMEngine::request_load_model(String path) {
 	}
 
 	// Not a strict check, but should be enough for now. 
-	if (model_status_ != MODEL_EMPTY) {
+	if (model_status_ == MODEL_LOADING) {
 		return;
 	}
+	model_status_ = MODEL_LOADING;
+
+	load_progress_ = 0.0f;
 
 	background_thread_ = std::jthread(&LLMEngine::load_model, ustr(path));
+}
+
+void LLMEngine::unload_model() {
+	std::unique_lock lock(mutex_);
+	model_.reset();
 }
 
 void LLMEngine::load_model(std::stop_token stoken, std::string path) {
@@ -101,13 +108,13 @@ void LLMEngine::load_model(std::stop_token stoken, std::string path) {
 		model_params.progress_callback = progress_cb;
 		model_params.progress_callback_user_data = &stoken;
 
-		llama_model* model = llama_model_load_from_file(path.c_str(), model_params);
+		LLMModel::llama_model_ptr model = { llama_model_load_from_file(path.c_str(), model_params), &llama_model_free };
 		if (!model) {
 			throw std::runtime_error("Unable to load model");
 		}
 
 		std::unique_lock lock(mutex_);
-		model_ = Ref<LLMModel>(memnew(LLMModel(model)));
+		model_ = Ref<LLMModel>(memnew(LLMModel(std::move(model))));
 		model_status_ = MODEL_READY;
 	} catch (const std::exception& e) {
 		std::unique_lock lock(mutex_);

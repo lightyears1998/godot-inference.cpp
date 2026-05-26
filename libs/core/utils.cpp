@@ -2,6 +2,8 @@
 
 #include <Windows.h>
 
+namespace core {
+
 std::string acp_to_utf8(const char *acp_str) {
 	if (acp_str == nullptr) {
 		return {};
@@ -29,4 +31,6 @@ std::string acp_to_utf8(const char *acp_str) {
 	WideCharToMultiByte(CP_UTF8, 0, wide_str.c_str(), wide_len, &utf8_str[0], utf8_len, nullptr, nullptr);
 
 	return utf8_str;
+}
+
 }
