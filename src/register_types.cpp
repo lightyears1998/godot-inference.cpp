@@ -2,18 +2,19 @@
 
 #include "constants.hpp"
 #include "globals.hpp"
-#include "llm_chat_parameters.hpp"
-#include "llm_chat_message.hpp"
+#include "godot_cpp/classes/engine.hpp"
 #include "llm_chat.hpp"
-#include "llm_model.hpp"
+#include "llm_chat_message.hpp"
+#include "llm_chat_parameters.hpp"
 #include "llm_engine.hpp"
+#include "llm_model.hpp"
 
-#include <clocale>
 #include <gdextension_interface.h>
+#include <clocale>
+#include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
-#include <godot_cpp/classes/project_settings.hpp>
 
 using namespace godot;
 
@@ -36,8 +37,9 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 		ps->set_setting(SETTINGS_KEY_MODEL_PATH, "model.gguf");
 	}
 
-	// NB: LLMEngine::init_backend() is not called here, allowing users more control over initialization timing.
-	// LLMEngine::init_backend();
+	if (!Engine::get_singleton()->is_editor_hint()) {
+		LLMEngine::init_backend();
+	}
 }
 
 void uninitialize_gdextension_types(ModuleInitializationLevel p_level) {
@@ -45,7 +47,9 @@ void uninitialize_gdextension_types(ModuleInitializationLevel p_level) {
 		return;
 	}
 
-	LLMEngine::free_backend();
+	if (!Engine::get_singleton()->is_editor_hint()) {
+		LLMEngine::free_backend();
+	}
 }
 
 extern "C"

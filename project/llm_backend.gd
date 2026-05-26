@@ -4,10 +4,6 @@ extends Node
 signal model_loaded(model: LLMModel)
 
 
-func _init() -> void:
-	LLMEngine.init_backend()
-
-
 func _ready() -> void:
 	LLMEngine.request_load_model()
 	await _report_load_progress()
@@ -15,10 +11,6 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	LLMEngine.tick()
-
-
-func _exit_tree() -> void:
-	LLMEngine.free_backend()
 
 
 func _report_load_progress() -> void:
@@ -31,4 +23,5 @@ func _report_load_progress() -> void:
 		await get_tree().create_timer(1).timeout
 
 	if LLMEngine.get_model_load_status() == LLMEngine.MODEL_READY:
+		print('model loaded')
 		model_loaded.emit(LLMEngine.get_model())
