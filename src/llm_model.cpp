@@ -57,15 +57,6 @@ godot::Ref<LLMChat> LLMModel::start_chat(const godot::Ref<LLMChatParameters>& pa
 		return {};
 	}
 
-	llama_context_params ctx_params = llama_context_default_params();
-	ctx_params.n_ctx = params->context_length_;
-	ctx_params.n_batch = 2048;
-
-	llama_context* ctx = llama_init_from_model(model_.get(), ctx_params);
-	if (!ctx) {
-		return {};
-	}
-
 	Ref<LLMChat> chat = memnew(LLMChat(this, params));
 	chat_oids_.insert(ObjectID(chat->get_instance_id()));
 	return chat;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "llm_model.hpp"
+
 #include <atomic>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
@@ -7,8 +9,6 @@
 #include <optional>
 #include <shared_mutex>
 #include <string>
-
-class LLMModel;
 
 // It is design to handle a single model right now.
 // docs/TODO.md
@@ -37,8 +37,8 @@ protected:
 
 private:
 	inline static std::shared_mutex mutex_;
-	inline static std::optional<godot::Ref<LLMModel>> model_;
-	inline static std::optional<std::jthread> background_thread_;
+	inline static godot::Ref<LLMModel> model_;
+	inline static std::jthread background_thread_;
 	inline static std::atomic<ModelStatus> model_status_ = MODEL_EMPTY;
 	inline static std::atomic<float> load_progress_ = 0;
 	inline static std::string last_error_;

@@ -46,8 +46,8 @@ void LLMEngine::init_backend() {
 
 void LLMEngine::tick() {
 	std::shared_lock lock(mutex_);
-	if (model_.has_value() && model_.value().is_valid()) {
-		model_.value().ptr()->tick();
+	if (model_.is_valid()) {
+		model_->tick();
 	}
 }
 
@@ -56,16 +56,16 @@ void LLMEngine::free_backend() {
 
 	std::unique_lock lock(mutex_);
 
-	if (background_thread_.has_value()) {
-		background_thread_->request_stop();
+	if (background_thread_.joinable()) {
+		background_thread_.request_stop();
 		lock.unlock();
-		background_thread_.reset();
+		background_thread_.join();
 	}
 
 	if (!lock.owns_lock()) {
 		lock.lock();
 	}
-	model_.reset();
+	model_.unref(); // TODO graceful shutdown
 	llama_backend_free();
 }
 
@@ -87,7 +87,7 @@ void LLMEngine::request_load_model(String path) {
 
 void LLMEngine::unload_model() {
 	std::unique_lock lock(mutex_);
-	model_.reset();
+	model_.unref();
 }
 
 void LLMEngine::load_model(std::stop_token stoken, std::string path) {
@@ -139,7 +139,7 @@ float LLMEngine::model_load_progress() {
 
 Ref<LLMModel> LLMEngine::model() {
 	std::shared_lock lock(mutex_);
-	return model_.value_or(Ref<LLMModel>());
+	return model_;
 }
 
 String LLMEngine::last_error() {

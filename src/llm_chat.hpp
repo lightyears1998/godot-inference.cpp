@@ -19,7 +19,7 @@ class LLMChatParameters;
 
 // TODO optimize data-flow
 class LLMChat : public godot::RefCounted {
-	GDCLASS(LLMChat, godot::RefCounted)
+	GDCLASS(LLMChat, RefCounted)
 
 public:
 	enum ReplyGenerationStatus {
@@ -31,11 +31,16 @@ public:
 	LLMChat(const godot::Ref<LLMModel> &model, const godot::Ref<LLMChatParameters> &params);
 	~LLMChat() override;
 
-	void tick();
-
-	// getter/setter
+	// props
+	bool is_valid() const { return ctx_ != nullptr; }
 	godot::Ref<LLMChatParameters> params() const;
 	void set_parameters(godot::Ref<LLMChatParameters> params);
+	ReplyGenerationStatus generation_status() const { return status_.load(); }
+	godot::String last_reply() const;
+	godot::TypedArray<LLMChatMessage> history() const;
+
+	// hook
+	void tick();
 
 	// op
 	void say(const godot::StringName& content);
@@ -49,31 +54,24 @@ public:
 	void piece_generated(godot::String content);
 	void reply_generated(godot::String content);
 
-	// props
-	ReplyGenerationStatus generation_status() const { return status_.load(); }
-	godot::String last_reply() const { return godot::String(last_reply_.c_str()); }
-	godot::TypedArray<LLMChatMessage> history() const;
-
 protected:
 	static void _bind_methods();
 
 private:
+	// mutex
 	mutable std::mutex mutex_;
 	std::condition_variable_any cv_;
 	std::atomic<bool> cancel_requested_ { false };
 
-	// resource
+	// ref
 	godot::Ref<LLMModel> model_ = nullptr;
 	godot::Ref<LLMChatParameters> params_;
 	std::unique_ptr<llama_context, decltype(&llama_free)> ctx_ = { nullptr, &llama_free };
 	std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)> sampler_ { nullptr, &llama_sampler_free };
-
-	// thread
 	std::jthread job_thread_;
-	std::stop_token stoken_;
 
 	// inbound
-	std::queue<godot::Ref<LLMChatMessage>> pending_inbound_messages_;
+	std::deque<godot::Ref<LLMChatMessage>> pending_inbound_messages_;
 
 	// outbound
 	std::string pending_outbound_piece_;
@@ -85,7 +83,7 @@ private:
 	std::atomic<ReplyGenerationStatus> status_ { IDLE };
 	std::string last_reply_;
 
-	void job_routine(std::stop_token);
+	void job_routine(std::stop_token stoken);
 	void update_sampler();
 	void input_message_locked(const godot::StringName &role, const godot::String &message);
 	void record_message_locked(const godot::StringName &role, const godot::String &message);

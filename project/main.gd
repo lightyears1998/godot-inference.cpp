@@ -17,12 +17,17 @@ func submit_text(text: String) -> void:
 
 func _general_chat() -> void:
 	var model := LLMEngine.get_model()
-	LLMEngine.unload_model()
+
 	var t1 = Time.get_ticks_msec()
 	var chat := model.start_general_chat()
-	var chat2 := model.start_intuitive_chat()
 	var t2 = Time.get_ticks_msec()
 	print(t2 - t1, ' ms to create chat')
+
+	chat.say("hi!")
+	chat.request_reply()
+	await chat.reply_generated
+	print(chat.get_last_reply())
+
 
 func _test() -> void:
 	await LLMBackend.model_loaded
