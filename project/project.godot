@@ -22,3 +22,11 @@ LLMBackend="*uid://cvbe67pp24uey"
 [display]
 
 window/stretch/mode="canvas_items"
+
+[llama.cpp]
+
+model_path="model.gguf"
+
+[rendering]
+
+rendering_device/driver.windows="d3d12"

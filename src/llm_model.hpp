@@ -1,8 +1,11 @@
 #pragma once
 
-#include <godot_cpp/classes/resource.hpp>
-#include <godot_cpp/classes/ref_counted.hpp>
+#include "llm_chat.hpp"
+
 #include <llama.h>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/classes/resource.hpp>
+#include <godot_cpp/classes/weak_ref.hpp>
 #include <memory>
 
 class LLMChat;
@@ -13,18 +16,17 @@ struct llama_context;
 class LLMModel : public godot::RefCounted {
 	GDCLASS(LLMModel, godot::RefCounted);
 
-protected:
-	static void _bind_methods();
-
 public:
 	LLMModel() = default;
 	LLMModel(llama_model* model);
+	~LLMModel() override;
 
-	godot::Ref<LLMChat> start_chat(const godot::Ref<LLMChatParameters>& params) const;
-	auto start_exploratory_chat_chat();
-	auto start_rigorous_chat_chat();
-	auto start_general_chat();
-	auto start_intuitive_chat();
+	void tick();
+	godot::Ref<LLMChat> start_chat(const godot::Ref<LLMChatParameters>& params);
+	godot::Ref<LLMChat> start_exploratory_chat_chat();
+	godot::Ref<LLMChat> start_rigorous_chat_chat();
+	godot::Ref<LLMChat> start_general_chat();
+	godot::Ref<LLMChat> start_intuitive_chat();
 
 	static godot::Ref<LLMChatParameters> get_exploratory_chat_params();
 	static godot::Ref<LLMChatParameters> get_rigorous_chat_params();
@@ -33,6 +35,10 @@ public:
 
 	llama_model* model() const { return model_.get(); }
 
+protected:
+	static void _bind_methods();
+
 private:
 	std::unique_ptr<llama_model, decltype(&llama_model_free)> model_ { nullptr, &llama_model_free };
+	std::set<godot::ObjectID> chat_oids_;
 };

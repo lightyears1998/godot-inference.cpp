@@ -10,11 +10,10 @@
 
 class LLMModel;
 
+// It is design to handle a single model right now.
+// docs/TODO.md
 class LLMEngine : public godot::RefCounted {
 	GDCLASS(LLMEngine, godot::RefCounted)
-
-protected:
-	static void _bind_methods();
 
 public:
 	enum ModelStatus {
@@ -22,9 +21,6 @@ public:
 		MODEL_LOADING = 1,
 		MODEL_READY = 2,
 	};
-
-	// LLMEngine() = default;
-	// ~LLMEngine() override = default;
 
 	static void init_backend();
 	static void tick();
@@ -35,15 +31,18 @@ public:
 	static godot::Ref<LLMModel> model();
 	static godot::String last_error();
 
+protected:
+	static void _bind_methods();
+
 private:
 	inline static std::shared_mutex mutex_;
 	inline static std::optional<godot::Ref<LLMModel>> model_;
-	inline static std::optional<std::jthread> backend_thread_;
+	inline static std::optional<std::jthread> background_thread_;
 	inline static std::atomic<ModelStatus> model_status_ = MODEL_EMPTY;
 	inline static std::atomic<float> load_progress_ = 0;
 	inline static std::string last_error_;
 
-	static void load_model(std::string path);
+	static void load_model(std::stop_token, std::string path);
 };
 
 VARIANT_ENUM_CAST(LLMEngine::ModelStatus);

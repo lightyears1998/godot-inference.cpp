@@ -5,13 +5,10 @@
 class LLMChatParameters : public godot::Resource {
 	GDCLASS(LLMChatParameters, godot::Resource);
 
-protected:
-	static void _bind_methods();
-
 public:
 	LLMChatParameters() = default;
 
-	float context_length_ = 32768;
+	int context_length_ = 32768;
 	float temperature_ = 0.8f;
 	float top_p_ = 1.0f;
 	int top_k_ = 40;
@@ -19,8 +16,8 @@ public:
 	float presence_penalty_ = 0.0f;
 	float repeat_penalty_ = 1.1f;
 
-	float context_length() const { return context_length_; }
-	void set_context_length(float value) { context_length_ = value; }
+	int context_length() const { return context_length_; }
+	void set_context_length(int value) { context_length_ = value; }
 
 	float temperature() const { return temperature_; }
 	void set_temperature(float value) { temperature_ = value; }
@@ -39,4 +36,7 @@ public:
 
 	float repeat_penalty() const { return repeat_penalty_; }
 	void set_repeat_penalty(float value) { repeat_penalty_ = value; }
+
+protected:
+	static void _bind_methods();
 };

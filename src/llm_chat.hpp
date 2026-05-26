@@ -16,20 +16,17 @@ class LLMChatParameters;
 class LLMChat : public godot::RefCounted {
 	GDCLASS(LLMChat, godot::RefCounted)
 
-protected:
-	static void _bind_methods();
-
 public:
 	enum ReplyGenerationStatus {
 		IDLE = 0,
 		GENERATING = 1,
 	};
 
-public:
 	LLMChat() = default;
 	LLMChat(llama_model* model, llama_context* ctx, const godot::Ref<LLMChatParameters> &params);
 	~LLMChat() override;
 
+	void tick();
 	godot::Ref<LLMChatParameters> params() const;
 	void set_parameters(godot::Ref<LLMChatParameters> params);
 
@@ -38,16 +35,19 @@ public:
 	void add_message(const godot::String &role, const godot::String &message);
 	godot::String request_reply();
 	void reply_generated(godot::String content);
+	void piece_generated(godot::String content);
 
 	ReplyGenerationStatus generation_status() const { return status_.load(); }
 	void cancel_generation();
-	void piece_generated(godot::String content);
 
 	godot::String last_reply() const { return godot::String(last_reply_.c_str()); }
 	godot::String last_error() const;
 
 	godot::TypedArray<LLMChatMessage> history() const;
 	void clear_history();
+
+protected:
+	static void _bind_methods();
 
 private:
 	mutable std::mutex mutex_;

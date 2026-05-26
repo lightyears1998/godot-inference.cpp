@@ -40,6 +40,8 @@ set(GODOT_PROJECT_DIR "project" CACHE STRING "The directory of a Godot project f
 set(GODOTCPP_TARGET $<IF:$<CONFIG:Debug>,template_debug,template_release>)
 
 # project dependencies
+find_package(Boost CONFIG REQUIRED COMPONENTS assert)
+find_path(BEXT_SML_INCLUDE_DIRS "boost/sml.hpp")
 find_package(fmt CONFIG REQUIRED)
 find_package(gsl-lite CONFIG REQUIRED)
 find_package(llama CONFIG REQUIRED)

@@ -5,9 +5,6 @@
 struct LLMChatMessage : public godot::RefCounted {
 	GDCLASS(LLMChatMessage, godot::RefCounted);
 
-protected:
-	static void _bind_methods();
-
 public:
 	godot::String role_;
 	godot::String message_;
@@ -16,4 +13,7 @@ public:
 	void set_role(const godot::String &role) { role_ = role; }
 	godot::String message() const { return message_; }
 	void set_message(const godot::String &message) { message_ = message; }
+
+protected:
+	static void _bind_methods();
 };

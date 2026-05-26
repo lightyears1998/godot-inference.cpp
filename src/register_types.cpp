@@ -1,6 +1,7 @@
 #include "register_types.hpp"
 
 #include "constants.hpp"
+#include "globals.hpp"
 #include "llm_chat_parameters.hpp"
 #include "llm_chat_message.hpp"
 #include "llm_chat.hpp"
@@ -22,6 +23,8 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 		return;
 	}
 
+	main_thread_id = std::this_thread::get_id();
+
 	ClassDB::register_abstract_class<LLMEngine>();
 	ClassDB::register_class<LLMModel>();
 	ClassDB::register_class<LLMChatParameters>();
@@ -32,17 +35,21 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	if (!ps->has_setting(SETTINGS_KEY_MODEL_PATH)) {
 		ps->set_setting(SETTINGS_KEY_MODEL_PATH, "model.gguf");
 	}
+
+	// NB: LLMEngine::init_backend() is not called here, allowing users more control over initialization timing.
+	// LLMEngine::init_backend();
 }
 
 void uninitialize_gdextension_types(ModuleInitializationLevel p_level) {
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
+
+	LLMEngine::free_backend();
 }
 
 extern "C"
 {
-	// Initialization
 	GDExtensionBool GDE_EXPORT godot_library_init(GDExtensionInterfaceGetProcAddress p_get_proc_address, GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization)
 	{
 		setlocale(LC_ALL, ".UTF8");

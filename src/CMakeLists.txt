@@ -14,14 +14,22 @@ add_library(${LIBNAME} SHARED
         constants.hpp
         llm_chat_parameters.cpp
         llm_chat_parameters.hpp
+        threading.cpp
+        threading.hpp
+        globals.hpp
 )
 
 target_link_libraries(${LIBNAME} PRIVATE
         godot-cpp
+        Boost::assert
         fmt::fmt
         gsl-lite::gsl-lite
         llama
         simdutf::simdutf
+)
+
+target_include_directories(${LIBNAME} PRIVATE
+        $<BUILD_INTERFACE:${BEXT_SML_INCLUDE_DIRS}>
 )
 
 set_target_properties(${LIBNAME}
@@ -34,7 +42,7 @@ set_target_properties(${LIBNAME}
 )
 
 add_custom_command(TARGET ${LIBNAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${LIBNAME}>" "${GODOT_PROJECT_BINARY_DIR}/$<TARGET_FILE_NAME:${LIBNAME}>"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:${LIBNAME}>" "${GODOT_PROJECT_BINARY_DIR}/$<TARGET_FILE_NAME:${LIBNAME}>"
 )
 
 if (DOC_XML)

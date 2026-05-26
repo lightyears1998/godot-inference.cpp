@@ -1,6 +1,9 @@
 extends Node
 
 
+signal model_loaded(model: LLMModel)
+
+
 func _init() -> void:
 	LLMEngine.init_backend()
 
@@ -19,10 +22,13 @@ func _exit_tree() -> void:
 
 
 func _report_load_progress() -> void:
-	while true:
+	while is_inside_tree():
 		var status := LLMEngine.get_model_load_status()
 		var progress := LLMEngine.get_model_load_progress()
 		print('model load progress: ', progress)
 		if status != LLMEngine.MODEL_LOADING:
 			break
 		await get_tree().create_timer(1).timeout
+
+	if LLMEngine.get_model_load_status() == LLMEngine.MODEL_READY:
+		model_loaded.emit(LLMEngine.get_model())

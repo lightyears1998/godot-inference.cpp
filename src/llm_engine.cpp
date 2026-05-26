@@ -6,6 +6,7 @@
 #include "utils.hpp"
 
 #include <llama.h>
+#include <boost/current_function.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <iostream>
 
@@ -27,6 +28,10 @@ void LLMEngine::_bind_methods() {
 }
 
 void LLMEngine::init_backend() {
+	print_line(BOOST_CURRENT_FUNCTION);
+
+	std::unique_lock lock(mutex_);
+
 	llama_log_set([](enum ggml_log_level level, const char* text, void*) {
 		if (level < GGML_LOG_LEVEL_WARN) {
 			return;
@@ -41,12 +46,27 @@ void LLMEngine::init_backend() {
 }
 
 void LLMEngine::tick() {
+	std::shared_lock lock(mutex_);
+	if (model_.has_value() && model_.value().is_valid()) {
+		model_.value().ptr()->tick();
+	}
 }
 
 void LLMEngine::free_backend() {
+	print_line(BOOST_CURRENT_FUNCTION);
+
 	std::unique_lock lock(mutex_);
+
+	if (background_thread_.has_value()) {
+		background_thread_->request_stop();
+		lock.unlock();
+		background_thread_.reset();
+	}
+
+	if (!lock.owns_lock()) {
+		lock.lock();
+	}
 	model_.reset();
-	backend_thread_.reset();
 	llama_backend_free();
 }
 
@@ -55,28 +75,31 @@ void LLMEngine::request_load_model(String path) {
 		path = String(ProjectSettings::get_singleton()->get_setting(SETTINGS_KEY_MODEL_PATH, "model.gguf"));
 	}
 
-	std::unique_lock lock(mutex_);
-	if (model_status_.load() != MODEL_EMPTY) {
+	// Not a strict check, but should be enough for now. 
+	if (model_status_ != MODEL_EMPTY) {
 		return;
 	}
 
-	model_status_ = MODEL_LOADING;
-	backend_thread_ = std::jthread(&LLMEngine::load_model, ustr(path));
+	background_thread_ = std::jthread(&LLMEngine::load_model, ustr(path));
 }
 
-void LLMEngine::load_model(std::string path) {
-	model_status_.store(MODEL_LOADING);
-	load_progress_.store(0.0f);
+void LLMEngine::load_model(std::stop_token stoken, std::string path) {
+	{	
+		std::unique_lock lock(mutex_);
+		model_status_ = MODEL_LOADING;
+		load_progress_ = 0.0f;
+	}
 
 	try {
-		const llama_progress_callback progress_cb = [](float progress, void* _) {
+		const llama_progress_callback progress_cb = [](float progress, void* stoken) -> bool {
 			load_progress_ = progress;
-			return true;
+			return !static_cast<std::stop_token*>(stoken)->stop_requested();
 		};
 
 		llama_model_params model_params = llama_model_default_params();
 		model_params.n_gpu_layers = -1;
 		model_params.progress_callback = progress_cb;
+		model_params.progress_callback_user_data = &stoken;
 
 		llama_model* model = llama_model_load_from_file(path.c_str(), model_params);
 		if (!model) {
