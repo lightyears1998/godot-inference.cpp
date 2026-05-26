@@ -6,7 +6,7 @@ using namespace godot;
 
 godot::String to_godot_string(const std::string &str) {
 	godot::String ret;
-	ret.parse_utf8(str.c_str());
+	ret.parse_utf8(str.c_str(), str.length());
 	return ret;
 }
 
