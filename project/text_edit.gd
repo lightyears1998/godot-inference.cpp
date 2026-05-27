@@ -23,3 +23,8 @@ func _gui_input(event: InputEvent) -> void:
 func commit_text():
 	text_commited.emit(text)
 	text = ""
+
+
+func scroll_to_end_of_text():
+	set_caret_line(get_line_count() - 1)
+	set_caret_column(get_line(get_line_count() - 1).length() - 1)

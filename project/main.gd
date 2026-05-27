@@ -3,32 +3,39 @@ extends Node
 @onready var user_text_edit: TextEdit = %UserTextEdit
 @onready var agent_text_edit: TextEdit = %AgentTextEdit
 @onready var user_confirm_button: Button = %UserConfirmButton
+@onready var clear_history_button: Button = $ClearHistoryButton
+
+
+var chat: LLMChat
 
 
 func _ready() -> void:
 	user_text_edit.text_commited.connect(submit_text)
 	user_confirm_button.pressed.connect(func (): user_text_edit.commit_text())
-	_test()
+	clear_history_button.pressed.connect(clear_chat_history)
+	_setup_chat()
 
 
 func submit_text(text: String) -> void:
+	if not is_instance_valid(chat) or not chat.is_valid():
+		return
+	chat.say(text)
 	agent_text_edit.text += text + "\n"
+	chat.request_reply()
 
 
-func _general_chat() -> void:
+func clear_chat_history() -> void:
+	if not is_instance_valid(chat):
+		return
+	chat.clear_history()
+
+
+func _setup_chat() -> void:
+	await LLMBackend.model_loaded
 	var model := LLMEngine.get_model()
 
 	var t1 = Time.get_ticks_msec()
-	var chat := model.start_general_chat()
+	chat = model.start_general_chat()
 	var t2 = Time.get_ticks_msec()
 	print(t2 - t1, ' ms to create chat')
-
-	chat.say("你好！")
-	chat.request_reply()
-	await chat.reply_generated
-	print(chat.get_last_reply())
-
-
-func _test() -> void:
-	await LLMBackend.model_loaded
-	await _general_chat()
+	chat.piece_generated.connect(func (t): agent_text_edit.text += t; agent_text_edit.scroll_to_end_of_text())

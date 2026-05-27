@@ -6,6 +6,7 @@
 #include "utils.hpp"
 
 #include <llama.h>
+#include <simdutf.h>
 #include <boost/assert/source_location.hpp>
 #include <boost/current_function.hpp>
 #include <godot_cpp/core/class_db.hpp>
@@ -76,7 +77,7 @@ void LLMChat::tick() {
 		std::lock_guard lock(mutex_);
 
 		if (!pending_outbound_piece_.empty()) {
-			piece_to_emit = std::move(pending_outbound_piece_);
+			piece_to_emit += pending_outbound_piece_;
 			pending_outbound_piece_.clear();
 		}
 
@@ -89,7 +90,10 @@ void LLMChat::tick() {
 	}
 
 	if (!piece_to_emit.empty()) {
-		piece_generated(gstr(piece_to_emit));
+		auto result = simdutf::validate_utf8_with_errors(piece_to_emit);
+		auto validated = piece_to_emit.substr(0, result.count);
+		piece_to_emit.erase(0, result.count);
+		piece_generated(gstr(validated));
 	}
 
 	if (!reply_to_emit.empty()) {
@@ -189,7 +193,6 @@ void LLMChat::job_routine(std::stop_token stoken) {
 			}
 
 			{
-				std::lock_guard lock(mutex_);
 				ret = llama_decode(ctx_.get(), batch);
 			}
 

@@ -8,26 +8,30 @@ script = ExtResource("1_0xm2m")
 
 [node name="AgentTextEdit" type="TextEdit" parent="." unique_id=2075313936]
 unique_name_in_owner = true
+anchors_preset = 10
+anchor_right = 1.0
 offset_left = 64.0
-offset_top = 32.0
-offset_right = 1024.0
+offset_top = 24.0
+offset_right = -64.0
 offset_bottom = 456.0
+grow_horizontal = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 editable = false
+wrap_mode = 1
+scroll_past_end_of_file = true
 script = ExtResource("2_h2yge")
 
 [node name="UserTextEdit" type="TextEdit" parent="." unique_id=279538033]
 unique_name_in_owner = true
-anchors_preset = 7
-anchor_left = 0.5
+anchors_preset = -1
 anchor_top = 1.0
-anchor_right = 0.5
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -512.0
+offset_left = 64.0
 offset_top = -168.0
-offset_right = 264.0
-offset_bottom = -65.0
+offset_right = -256.0
+offset_bottom = -40.0
 grow_horizontal = 2
 grow_vertical = 0
 placeholder_text = "User input"
@@ -35,15 +39,29 @@ script = ExtResource("2_h2yge")
 
 [node name="UserConfirmButton" type="Button" parent="." unique_id=1485648776]
 unique_name_in_owner = true
-anchors_preset = 3
-anchor_left = 1.0
+anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -296.0
-offset_top = -152.0
-offset_right = -128.0
-offset_bottom = -84.0
-grow_horizontal = 0
+offset_left = 920.0
+offset_top = -168.0
+offset_right = -64.0
+offset_bottom = -96.0
+grow_horizontal = 2
 grow_vertical = 0
 text = "Confirm"
+
+[node name="ProgressBar" type="ProgressBar" parent="." unique_id=899723023]
+unique_name_in_owner = true
+visible = false
+offset_left = 64.0
+offset_top = 24.0
+offset_right = 1088.0
+offset_bottom = 51.0
+
+[node name="ClearHistoryButton" type="Button" parent="." unique_id=163527412]
+offset_left = 920.0
+offset_top = 560.0
+offset_right = 1093.0
+offset_bottom = 608.0
+text = "Clear History"

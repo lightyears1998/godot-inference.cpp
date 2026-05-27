@@ -9,7 +9,7 @@ func _ready() -> void:
 	await _report_load_progress()
 
 
-func _process(_delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	LLMEngine.tick()
 
 
