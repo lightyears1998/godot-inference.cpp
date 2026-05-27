@@ -52,7 +52,7 @@ void LLMModel::tick() {
 }
 
 // TODO don't block ui
-godot::Ref<LLMChat> LLMModel::start_chat(const godot::Ref<LLMChatParameters>& params) {
+Ref<LLMChat> LLMModel::start_chat(const godot::Ref<LLMChatParameters>& params) {
 	if (!model_) {
 		return {};
 	}
@@ -67,19 +67,20 @@ Ref<LLMChat> LLMModel::start_exploratory_chat_chat() {
 }
 
 Ref<LLMChat> LLMModel::start_rigorous_chat_chat() {
-	return start_chat(get_exploratory_chat_params());
+	return start_chat(get_rigorous_chat_params());
 }
 
 Ref<LLMChat> LLMModel::start_general_chat() {
-	return start_chat(get_exploratory_chat_params());
+	return start_chat(get_general_chat_params());
 }
 
 Ref<LLMChat> LLMModel::start_intuitive_chat() {
-	return start_chat(get_exploratory_chat_params());
+	return start_chat(get_intuitive_chat_params());
 }
 
-godot::Ref<LLMChatParameters> LLMModel::get_exploratory_chat_params() {
+Ref<LLMChatParameters> LLMModel::get_exploratory_chat_params() {
 	auto ret = memnew(LLMChatParameters);
+	ret->thinking_enabled_ = true;
 	ret->temperature_ = 1;
 	ret->top_p_ = 0.95;
 	ret->top_k_ = 20;
@@ -89,8 +90,9 @@ godot::Ref<LLMChatParameters> LLMModel::get_exploratory_chat_params() {
 	return ret;
 }
 
-godot::Ref<LLMChatParameters> LLMModel::get_rigorous_chat_params() {
+Ref<LLMChatParameters> LLMModel::get_rigorous_chat_params() {
 	auto ret = memnew(LLMChatParameters);
+	ret->thinking_enabled_ = true;
 	ret->temperature_ = 0.6;
 	ret->top_p_ = 0.95;
 	ret->top_k_ = 20;
@@ -100,8 +102,9 @@ godot::Ref<LLMChatParameters> LLMModel::get_rigorous_chat_params() {
 	return ret;
 }
 
-godot::Ref<LLMChatParameters> LLMModel::get_general_chat_params() {
+Ref<LLMChatParameters> LLMModel::get_general_chat_params() {
 	auto ret = memnew(LLMChatParameters);
+	ret->thinking_enabled_ = false;
 	ret->temperature_ = 0.7;
 	ret->top_p_ = 0.8;
 	ret->top_k_ = 20;
@@ -111,8 +114,9 @@ godot::Ref<LLMChatParameters> LLMModel::get_general_chat_params() {
 	return ret;
 }
 
-godot::Ref<LLMChatParameters> LLMModel::get_intuitive_chat_params() {
+Ref<LLMChatParameters> LLMModel::get_intuitive_chat_params() {
 	auto ret = memnew(LLMChatParameters);
+	ret->thinking_enabled_ = false;
 	ret->temperature_ = 1;
 	ret->top_p_ = 0.95;
 	ret->top_k_ = 20;

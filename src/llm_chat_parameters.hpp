@@ -20,7 +20,8 @@ public:
 	int context_length() const { return context_length_; }
 	void set_context_length(int value) { context_length_ = value; }
 
-	// TODO
+	bool thinking_enabled() const { return thinking_enabled_; }
+	void set_thinking_enabled(bool value) { thinking_enabled_ = value; }
 
 	float temperature() const { return temperature_; }
 	void set_temperature(float value) { temperature_ = value; }

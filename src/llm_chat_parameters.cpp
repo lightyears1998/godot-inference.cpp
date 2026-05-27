@@ -7,6 +7,10 @@ void LLMChatParameters::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_context_length", "value"), &LLMChatParameters::set_context_length);
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "context_length"), "set_context_length", "get_context_length");
 
+	ClassDB::bind_method(D_METHOD("get_thinking_enabled"), &LLMChatParameters::thinking_enabled);
+	ClassDB::bind_method(D_METHOD("set_thinking_enabled", "value"), &LLMChatParameters::set_thinking_enabled);
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "thinking_enabled"), "set_thinking_enabled", "get_thinking_enabled");
+
 	ClassDB::bind_method(D_METHOD("get_temperature"), &LLMChatParameters::temperature);
 	ClassDB::bind_method(D_METHOD("set_temperature", "value"), &LLMChatParameters::set_temperature);
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "temperature"), "set_temperature", "get_temperature");
