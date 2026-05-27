@@ -2,7 +2,8 @@
 
 entry_symbol = "godot_library_init"
 compatibility_minimum = "4.5"
-reloadable = true
+reloadable = false
+; Reloadable should be disabled. Since memory layouts are likely to differ between builds, hot-reloading would lead to crashes.
 
 [libraries]
 windows.x86_64.single.debug = "./windows/godot_llama_cpp.windows.template_debug.x86_64.dll"
