@@ -1,5 +1,7 @@
 # Godot llama.cpp
 
+🚧 Under heavy development: It's not ready yet!
+
 A GDExtension that enables running LLM within Godot.
 It serves as a thin wrapper around llama.cpp and allows GDScript to access a high-level LLM API.
 

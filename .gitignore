@@ -57,6 +57,9 @@ compile_commands.json
 # Jetbrains
 .idea/
 
+# Visual Studio
+.vs/
+
 # Cmake
 cmake-build*
 CMakeUserPresets.json
