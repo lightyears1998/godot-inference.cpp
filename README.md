@@ -2,13 +2,14 @@
 
 🚧 Under heavy development: It's not ready yet!
 
-A GDExtension that enables running LLM within Godot.
+A GDExtension that enables running LLMs within Godot.
 It serves as a thin wrapper around llama.cpp and allows GDScript to access a high-level LLM API.
 
-## When to use this library and alternatives
+## When to use this library (and when not to)
 
 - Give it a try for fun! :)
-- Use it when you need to run an LLM locally and optimize for a specific GGML backend, and tools like Ollama or LM Studio don’t meet your needs.
+  Use it when you need to run an LLM locally, optimize for a specific GGML backend, and existing tools like Ollama or LM Studio don’t meet your needs.
+- Or when you want to build complex inference pipelines and make a lot of customizations.
 - Or when you need to ship your fine-tuned model directly with the game binary. Since models are typically several gigabytes, the library’s added file size is negligible in comparison.
 
 I've done my best to make it reliable, but for serious production work, check out the alternatives below.
