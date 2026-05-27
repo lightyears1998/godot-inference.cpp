@@ -47,6 +47,16 @@ void uninitialize_gdextension_types(ModuleInitializationLevel p_level) {
 		return;
 	}
 
+	/*
+	 * Workaround for GGML's terminate handler assertion when hot-reloading is enabled.
+	 *
+	 * GGML installs its own terminate handler (ggml_uncaught_exception_init) to print backtraces.
+	 * It contains an assertion that checks whether the current terminate handler is itself.
+	 * During hot-reload, the assertion could be triggered, or worse, it might not be able to protect against circular reference.
+	 * We reset the terminate handler here to avoid triggering the assertion in future reload.
+	 */
+	std::set_terminate(library_terminate_handler);
+
 	if (!Engine::get_singleton()->is_editor_hint()) {
 		LLMEngine::free_backend();
 	}
