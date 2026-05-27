@@ -5,11 +5,13 @@
 - [ ] Consider static linking of 3rd party libs. 
 - [ ] Try RAG. 
   - [ ] USearch / Faiss: I dont want to use GPU acceleration since LLM Model has taken a lot VRAM, so perhaps usearch is better.
+- [ ] Add support for additional LLMs beyond Qwen3.5 series.
 
 ## Refactoring
 
 - [ ] Support multiple models loading.
 
+## Misc
 
 ```txt
 248068 <think> 
