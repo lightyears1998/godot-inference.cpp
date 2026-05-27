@@ -43,8 +43,8 @@ public:
 	void tick();
 
 	// op
-	void say(const godot::StringName& content);
-	void remind(const godot::StringName& content);
+	void say(const godot::String& content);
+	void remind(const godot::String& content);
 	void add_message(const godot::StringName &role, const godot::String &message);
 	void request_reply();
 	void cancel_generation();

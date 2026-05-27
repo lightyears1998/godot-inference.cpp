@@ -10,6 +10,10 @@ godot::String to_godot_string(const std::string &str) {
 	return ret;
 }
 
+/*
+ * Note: Godot string is UTF32.
+ * https://docs.godotengine.org/en/stable/engine_details/architecture/core_types.html#containers
+ */
 std::string to_std_string(const godot::String &str) {
 	const auto u32_ptr = str.ptr();
 	const auto u32_len = str.length();

@@ -1,4 +1,5 @@
 #include "llm_chat.hpp"
+
 #include "llm_chat_message.hpp"
 #include "llm_chat_parameters.hpp"
 #include "llm_model.hpp"
@@ -55,7 +56,7 @@ LLMChat::LLMChat(const godot::Ref<LLMModel> &model, const godot::Ref<LLMChatPara
 	update_sampler();
 
 	job_thread_ = std::jthread([&](std::stop_token stoken) {
-		job_routine(stoken);
+		job_routine(std::move(stoken));
 	});
 }
 
@@ -96,7 +97,7 @@ void LLMChat::tick() {
 	}
 }
 
-godot::Ref<LLMChatParameters> LLMChat::params() const {
+Ref<LLMChatParameters> LLMChat::params() const {
 	std::lock_guard lock(mutex_);
 
 	return params_;
@@ -144,6 +145,16 @@ void LLMChat::job_routine(std::stop_token stoken) {
 			}
 		}
 		prompt += "<|im_start|>assistant\n";
+
+		{
+			std::lock_guard lock(mutex_);
+
+			if (params_->thinking_enabled_) {
+				prompt += "<think>\n";
+			} else {
+				prompt += "<think>\n\n</think>\n\n";
+			}
+		}
 
 		const bool add_special = [&] {
 			std::lock_guard lock(mutex_);
@@ -308,13 +319,13 @@ void LLMChat::set_parameters(Ref<LLMChatParameters> params) {
 	update_sampler();
 }
 
-void LLMChat::say(const StringName& content) {
+void LLMChat::say(const String& content) {
 	std::lock_guard lock(mutex_);
 
 	input_message_locked("user", content);
 }
 
-void LLMChat::remind(const StringName& content) {
+void LLMChat::remind(const String& content) {
 	std::lock_guard lock(mutex_);
 
 	input_message_locked("system", content);
@@ -358,18 +369,18 @@ void LLMChat::request_reply() {
 	cv_.notify_all();
 }
 
-void LLMChat::reply_generated(godot::String content) {
+void LLMChat::reply_generated(String content) {
 	emit_signal("reply_generated", content);
 }
 
-void LLMChat::piece_generated(godot::String content) {
+void LLMChat::piece_generated(String content) {
 	emit_signal("piece_generated", content);
 }
 
-godot::String LLMChat::last_reply() const {
+String LLMChat::last_reply() const {
 	std::lock_guard lock(mutex_);
 
-	return { last_reply_.c_str() };
+	return gstr(last_reply_);
 }
 
 TypedArray<LLMChatMessage> LLMChat::history() const {
