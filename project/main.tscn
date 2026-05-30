@@ -17,7 +17,6 @@ offset_bottom = 456.0
 grow_horizontal = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-editable = false
 wrap_mode = 1
 scroll_past_end_of_file = true
 script = ExtResource("2_h2yge")

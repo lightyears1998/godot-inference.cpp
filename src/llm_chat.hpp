@@ -61,7 +61,8 @@ private:
 	// mutex
 	mutable std::mutex mutex_;
 	std::condition_variable_any cv_;
-	std::atomic<bool> cancel_requested_ { false };
+	std::atomic<bool> generation_requested_;
+	std::atomic<bool> cancel_requested_;
 
 	// ref
 	godot::Ref<LLMModel> model_ = nullptr;

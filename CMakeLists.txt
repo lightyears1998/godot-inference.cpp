@@ -24,8 +24,9 @@ if (WIN32 AND MSVC)
 
     add_compile_definitions(WIN32_LEAN_AND_MEAN)
     add_compile_definitions(UNICODE)
+    add_compile_definitions(VC_EXTRALEAN)
     add_compile_definitions(NOMINMAX)
-    add_compile_definitions(VC_EXTRALEAN) # Excluding MFC
+    add_compile_definitions(NOGDI)
 
     # Dynamic-linked CRT
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
