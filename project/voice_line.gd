@@ -10,8 +10,10 @@ enum AudioStatus {
 
 signal audio_is_buffered
 
-@export var line: String
 @export var debug_enabled: bool
+@export var line: String
+@export var voice_line: String
+@export var voice_acting_enabled: bool = true
 
 @onready var audio_stream_player: AudioStreamPlayer = $AudioStreamPlayer
 @onready var generator: AudioStreamGenerator = audio_stream_player.stream
@@ -28,17 +30,22 @@ var _should_play: bool
 
 func _ready() -> void:
 	_utils = Utils.new(debug_enabled)
-	await LLMBackend.model_loaded
+	await LLMBackend.wait_until_ready()
 
 	play_audio_button.pressed.connect(_toggle_play)
 	line_label.text = line
 
-	_utils.stub("start to request voice: ", line)
-	request_voice(line)
+	if voice_acting_enabled:
+		_utils.stub("start to request voice: ", line)
+		if voice_line.is_empty():
+			voice_line = line
+		request_voice(voice_line)
 
-	await audio_is_buffered
-	_utils.stub('start to play voice: ', line)
-	_play()
+		await audio_is_buffered
+		_utils.stub('start to play voice: ', voice_line)
+		_play()
+	else:
+		play_audio_button.disabled = true
 
 
 func load_pcm_from_file(filepath: String) -> void:
@@ -48,11 +55,12 @@ func load_pcm_from_file(filepath: String) -> void:
 
 func request_voice(text: String) -> void:
 	_audio_status = AudioStatus.BUFFERING
+	var task_id := randi()
 
 	var http_client := HTTPClient.new()
 	var err = http_client.connect_to_host("127.0.0.1", 8000)
 	if err != OK:
-		push_error('connect_to_host: ', err)
+		push_error(task_id, 'connect_to_host: ', err)
 		return
 
 	while http_client.get_status() == HTTPClient.STATUS_CONNECTING || http_client.get_status() == HTTPClient.STATUS_RESOLVING:
@@ -60,9 +68,9 @@ func request_voice(text: String) -> void:
 		await get_tree().process_frame
 
 	if http_client.get_status() != HTTPClient.STATUS_CONNECTED:
-		push_error('get_status ', http_client.get_status())
+		push_error(task_id, 'get_status ', http_client.get_status())
 		return
-	_utils.stub('connected')
+	_utils.stub(task_id, 'connected')
 
 	var request_body = {
 		"model": "tts-1",
@@ -90,9 +98,9 @@ func request_voice(text: String) -> void:
 
 	var response_code = http_client.get_response_code()
 	if response_code < 200 or response_code >= 300:
-		push_error('response_code', response_code)
+		push_error(task_id, 'response_code', response_code)
 		return
-	_utils.stub("responding")
+	_utils.stub(task_id, "responding")
 
 	var bytes: PackedByteArray
 	while http_client.get_status() == HTTPClient.STATUS_BODY:
@@ -102,7 +110,7 @@ func request_voice(text: String) -> void:
 
 	_push_pcm_buffer([], true)
 	http_client.close()
-	_utils.stub('request completed')
+	_utils.stub(task_id, 'request completed')
 
 
 func _push_pcm_buffer(bytes: PackedByteArray, is_finished: bool) -> void:

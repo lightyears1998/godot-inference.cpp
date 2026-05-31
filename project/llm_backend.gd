@@ -4,6 +4,9 @@ extends Node
 signal model_loaded(model: LLMModel)
 
 
+var _is_ready := false
+
+
 func _ready() -> void:
 	LLMEngine.request_load_model()
 	await _report_load_progress()
@@ -30,4 +33,11 @@ func _report_load_progress() -> void:
 		var t_end := Time.get_ticks_msec()
 		print('time to load model: ', t_end - t_start, 'ms')
 
+		_is_ready = true
 		model_loaded.emit(LLMEngine.get_model())
+
+
+func wait_until_ready() -> void:
+	if not _is_ready:
+		await model_loaded
+	return

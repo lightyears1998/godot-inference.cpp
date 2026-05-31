@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://b3vw6gem3cs70"]
 
 [ext_resource type="Script" uid="uid://cdmukmgdhd4td" path="res://text_edit.gd" id="1_2wvuj"]
+[ext_resource type="Script" uid="uid://b7ouwil4aw145" path="res://text_to_speech.gd" id="1_uy1f2"]
 
 [node name="TextToSpeech" type="Control" unique_id=1679660720]
 layout_mode = 3
@@ -9,6 +10,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_uy1f2")
 
 [node name="UserTextEdit" type="TextEdit" parent="." unique_id=300510858]
 unique_name_in_owner = true
@@ -45,7 +47,7 @@ text = "Confirm"
 layout_mode = 0
 offset_left = 920.0
 offset_top = 560.0
-offset_right = 1093.0
+offset_right = 1088.0
 offset_bottom = 608.0
 text = "Clear History"
 

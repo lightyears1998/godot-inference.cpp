@@ -10,8 +10,8 @@ anchors_preset = 10
 anchor_right = 1.0
 grow_horizontal = 2
 script = ExtResource("1_kyl1l")
-line = "それが最善の時代であり、また最悪の時代であった。それが智慧の時代であり、また愚行の時代であった。"
 debug_enabled = true
+line = "それが最善の時代であり、また最悪の時代であった。それが智慧の時代であり、また愚行の時代であった。"
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=5868154]
 stream = SubResource("AudioStreamGenerator_r3w5p")
