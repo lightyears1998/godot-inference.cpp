@@ -19,6 +19,10 @@ config/icon="res://icon.svg"
 
 LLMBackend="*uid://cvbe67pp24uey"
 
+[debug]
+
+gdscript/warnings/integer_division=0
+
 [display]
 
 window/stretch/mode="canvas_items"

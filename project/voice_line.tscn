@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://b8op0v1ni02gj"]
+
+[ext_resource type="Script" uid="uid://ebccyucw01df" path="res://voice_line.gd" id="1_kyl1l"]
+
+[sub_resource type="AudioStreamGenerator" id="AudioStreamGenerator_r3w5p"]
+mix_rate = 24000.0
+
+[node name="VoiceLine" type="HBoxContainer" unique_id=1297883829]
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+script = ExtResource("1_kyl1l")
+line = "それが最善の時代であり、また最悪の時代であった。それが智慧の時代であり、また愚行の時代であった。"
+debug_enabled = true
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=5868154]
+stream = SubResource("AudioStreamGenerator_r3w5p")
+
+[node name="Speaker" type="Label" parent="." unique_id=854087230]
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "Me"
+
+[node name="LineLabel" type="Label" parent="." unique_id=1520361459]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "1
+2
+3"
+
+[node name="PlayAudioButton" type="Button" parent="." unique_id=645033006]
+layout_mode = 2
+size_flags_vertical = 4
+text = "Play"

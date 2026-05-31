@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://b3vw6gem3cs70"]
+
+[ext_resource type="Script" uid="uid://cdmukmgdhd4td" path="res://text_edit.gd" id="1_2wvuj"]
+
+[node name="TextToSpeech" type="Control" unique_id=1679660720]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="UserTextEdit" type="TextEdit" parent="." unique_id=300510858]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 64.0
+offset_top = -168.0
+offset_right = -256.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+placeholder_text = "User input"
+script = ExtResource("1_2wvuj")
+
+[node name="UserConfirmButton" type="Button" parent="." unique_id=1522906069]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 920.0
+offset_top = -168.0
+offset_right = -64.0
+offset_bottom = -96.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Confirm"
+
+[node name="ClearHistoryButton" type="Button" parent="." unique_id=1586450640]
+layout_mode = 0
+offset_left = 920.0
+offset_top = 560.0
+offset_right = 1093.0
+offset_bottom = 608.0
+text = "Clear History"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="." unique_id=1609089033]
+layout_mode = 0
+offset_left = 64.0
+offset_top = 24.0
+offset_right = 1088.0
+offset_bottom = 448.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer" unique_id=1199067791]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
