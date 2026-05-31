@@ -1,6 +1,7 @@
 #pragma once
 
 #include "llm_chat.hpp"
+#include "llm_chat_parameters.hpp"
 
 #include <llama.h>
 #include <godot_cpp/classes/ref_counted.hpp>

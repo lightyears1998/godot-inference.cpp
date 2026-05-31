@@ -18,6 +18,8 @@ add_library(${LIBNAME} SHARED
         threading.hpp
         globals.hpp
         globals.cpp
+        benchmark.cpp
+        benchmark.hpp
 )
 
 target_link_libraries(${LIBNAME} PRIVATE

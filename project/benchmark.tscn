@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://cm7j3w72p7afg"]
+
+[ext_resource type="Script" uid="uid://dmsq7c6m765sm" path="res://benchmark.gd" id="1_3q80e"]
+
+[node name="Benchmark" type="VBoxContainer" unique_id=1951957857]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3q80e")
+
+[node name="TestButton" type="Button" parent="." unique_id=451131579]
+layout_mode = 2
+text = "Test"

@@ -1,16 +1,17 @@
 #include "register_types.hpp"
 
+#include "benchmark.hpp"
 #include "constants.hpp"
 #include "globals.hpp"
-#include "godot_cpp/classes/engine.hpp"
 #include "llm_chat.hpp"
 #include "llm_chat_message.hpp"
 #include "llm_chat_parameters.hpp"
 #include "llm_engine.hpp"
 #include "llm_model.hpp"
 
-#include <gdextension_interface.h>
 #include <clocale>
+#include <gdextension_interface.h>
+#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/project_settings.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
@@ -31,6 +32,7 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	ClassDB::register_class<LLMChatParameters>();
 	ClassDB::register_class<LLMChat>();
 	ClassDB::register_class<LLMChatMessage>();
+	ClassDB::register_class<Benchmark>();
 
 	auto *ps = ProjectSettings::get_singleton();
 	if (!ps->has_setting(SETTINGS_KEY_MODEL_PATH)) {
