@@ -38,14 +38,18 @@ endif()
 set(LIBNAME "godot_inference_cpp")
 set(GODOT_PROJECT_DIR "project" CACHE STRING "The directory of a Godot project folder")
 
-set(GODOTCPP_TARGET $<IF:$<CONFIG:Debug>,template_debug,template_release>)
+if (NOT DEFINED GODOTCPP_TARGET)
+    set(GODOTCPP_TARGET $<IF:$<CONFIG:Debug>,template_debug,template_release>)
+endif ()
 
 # project dependencies
 find_package(Boost CONFIG REQUIRED COMPONENTS assert)
 find_path(BEXT_SML_INCLUDE_DIRS "boost/sml.hpp")
 find_package(fmt CONFIG REQUIRED)
 find_package(gsl-lite CONFIG REQUIRED)
+find_package(ggml CONFIG REQUIRED)
 find_package(llama CONFIG REQUIRED)
+find_package(whisper CONFIG REQUIRED)
 find_package(simdutf CONFIG REQUIRED)
 
 # godot-cpp dependencies

@@ -1,26 +1,44 @@
 {
-  "version": 6,
+  "version": 10,
+  "$comment": "Although we may use a Multi-Config generator, some libraries (eg. ggml) do not work well with it. Therefore, we have to configure a build matrix and set CMAKE_CONFIGURATION_TYPES and CMAKE_BUILD_TYPE manually.",
   "configurePresets": [
     {
-      "name": "default",
-      "binaryDir": "${sourceDir}/cmake-build",
+      "name": "base",
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkg/ports",
         "VCPKG_TARGET_TRIPLET": "x64-windows"
       }
-    }
-  ],
-  "buildPresets": [
-    {
-      "name": "debug",
-      "configurePreset": "default",
-      "configuration": "Debug"
     },
     {
-      "name": "release",
-      "configurePreset": "default",
-      "configuration": "RelWithDebInfo"
+      "name": "debug_template_debug",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/debug_template_debug",
+      "cacheVariables": {
+        "GODOTCPP_TARGET": "template_debug",
+        "CMAKE_CONFIGURATION_TYPES": "Debug",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release_template_debug",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/release_template_debug",
+      "cacheVariables": {
+        "GODOTCPP_TARGET": "template_debug",
+        "CMAKE_CONFIGURATION_TYPES": "Release",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "release_template_release",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/release_template_release",
+      "cacheVariables": {
+        "GODOTCPP_TARGET": "template_release",
+        "CMAKE_CONFIGURATION_TYPES": "Release",
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ]
 }

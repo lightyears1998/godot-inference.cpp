@@ -6,7 +6,9 @@ add_library(core STATIC
 )
 
 target_link_libraries(core PUBLIC
+        ggml::ggml
         llama
+        whisper
 )
 
 target_include_directories(core PUBLIC
