@@ -64,3 +64,10 @@ offset_top = 560.0
 offset_right = 1093.0
 offset_bottom = 608.0
 text = "Clear History"
+
+[node name="Button" type="Button" parent="." unique_id=322236367]
+offset_left = 840.0
+offset_top = 560.0
+offset_right = 878.0
+offset_bottom = 591.0
+text = "MIC"

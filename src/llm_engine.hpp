@@ -12,7 +12,7 @@
 
 // It is design to handle a single model right now.
 // docs/TODO.md
-class LLMEngine : public godot::RefCounted {
+class LLMEngine final : public godot::RefCounted {
 	GDCLASS(LLMEngine, godot::RefCounted)
 
 public:
