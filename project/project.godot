@@ -10,10 +10,14 @@ config_version=5
 
 [application]
 
-config/name="Godot llama.cpp Test"
+config/name="Godot LLM Test"
 run/main_scene="uid://dh0oj81pufivs"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
+
+[audio]
+
+driver/enable_input=true
 
 [autoload]
 

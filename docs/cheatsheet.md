@@ -1,4 +1,6 @@
-# llama.cpp Cheatsheet
+# Cheatsheet
+
+## llama.cpp
 
 Misc
 llama_log_set

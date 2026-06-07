@@ -1,15 +1,16 @@
 # Developer Docs
 
-## Dependencies via vcpkg
+## Optional: Install dependencies via vcpkg
 
-### CUDA
+### ggml with blas and CUDA
 
 ``` powershell
 $env:VCPKG_OVERLAY_PORTS="vcpkg/ports"
 $env:VCPKG_DEFAULT_TRIPLET="x64-windows"
 
-vcpkg install ggml[cuda]
+vcpkg install ggml[blas,cuda]
 vcpkg install llama-cpp
+vcpkg install whisper-cpp[cuda]
 ```
 
 References:

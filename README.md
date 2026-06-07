@@ -1,9 +1,9 @@
-# Godot llama.cpp
+# Godot LLM Extension
 
 🚧 Under heavy development: It's not ready yet!
 
 A GDExtension that enables running LLMs within Godot.
-It serves as a thin wrapper around llama.cpp and allows GDScript to access a high-level LLM API.
+It is built on top of GGML, llama.cpp and whisper.cpp.
 
 ## When to use this library (and when not to)
 
