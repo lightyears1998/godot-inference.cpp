@@ -6,5 +6,5 @@ reloadable = false
 ; Reloadable should be disabled. Since memory layouts are likely to differ between builds, hot-reloading would lead to crashes.
 
 [libraries]
-windows.x86_64.single.debug = "./windows/godot_llama_cpp.windows.template_debug.x86_64.dll"
-windows.x86_64.single.release = "./windows/godot_llama_cpp.windows.template_release.x86_64.dll"
+windows.x86_64.single.debug = "./windows/godot_inference_cpp.windows.template_debug.x86_64.dll"
+windows.x86_64.single.release = "./windows/godot_inference_cpp.windows.template_release.x86_64.dll"

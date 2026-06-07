@@ -35,7 +35,7 @@ if (WIN32 AND MSVC)
     # set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-set(LIBNAME "godot_llama_cpp")
+set(LIBNAME "godot_inference_cpp")
 set(GODOT_PROJECT_DIR "project" CACHE STRING "The directory of a Godot project folder")
 
 set(GODOTCPP_TARGET $<IF:$<CONFIG:Debug>,template_debug,template_release>)

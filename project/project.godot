@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Godot LLM Test"
+config/name="Godot Inference Engine Test"
 run/main_scene="uid://dh0oj81pufivs"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
