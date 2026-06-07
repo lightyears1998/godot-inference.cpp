@@ -174,6 +174,9 @@ void LLMChat::job_routine(std::stop_token stoken) {
 		llama_token new_token_id;
 		auto batch = llama_batch_get_one(tokens.data(), tokens.size());
 
+		int n_response_token = 0;
+		auto t_start = std::chrono::steady_clock::now();
+
 		while (!stoken.stop_requested() && !cancel_requested_.load()) {
 			int n_ctx = llama_n_ctx(ctx_.get());
 			int n_ctx_used = llama_memory_seq_pos_max(llama_get_memory(ctx_.get()), 0) + 1;
@@ -183,6 +186,7 @@ void LLMChat::job_routine(std::stop_token stoken) {
 			}
 
 			ret = llama_decode(ctx_.get(), batch);
+			n_response_token++;
 
 			if (ret != 0) {
 				print_error("failed to decode, ret: ", ret);
@@ -213,6 +217,12 @@ void LLMChat::job_routine(std::stop_token stoken) {
 			new_token_id = sampled_token;
 			batch = llama_batch_get_one(&new_token_id, 1);
 		}
+
+		auto t_end = std::chrono::steady_clock::now();
+		std::chrono::duration<double> duration = t_end - t_start;
+		auto token_per_sec = n_response_token / duration.count();
+
+		print_line("tokens per second: ", token_per_sec);
 
 		{
 			std::lock_guard lock(mutex_);
