@@ -46,6 +46,7 @@ if("cuda" IN_LIST FEATURES)
         "-DCMAKE_CUDA_COMPILER=${NVCC}"
         "-DCUDAToolkit_ROOT=${cuda_toolkit_root}"
         "-DCMAKE_CUDA_ARCHITECTURES:STRING=${CUDA_ARCHS}"
+        "-DGGML_CUDA_GRAPHS=ON" # https://github.com/ggml-org/ggml/blob/1e33fed33e87c43aa4c4078e2a9c239d4c1f1bd3/src/ggml-cuda/CMakeLists.txt#L134
     )
 endif()
 
