@@ -7,7 +7,11 @@
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
         "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkg/ports",
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "TRACY_ENABLE": "OFF",
+        "TRACY_ON_DEMAND": "ON",
+        "TRACY_DELAYED_INIT": "ON",
+        "TRACY_MANUAL_LIFETIME": "ON"
       }
     },
     {
@@ -18,10 +22,7 @@
         "GODOTCPP_TARGET": "template_debug",
         "CMAKE_CONFIGURATION_TYPES": "Debug",
         "CMAKE_BUILD_TYPE": "Debug",
-        "TRACY_ENABLE": "ON",
-        "TRACY_ON_DEMAND": "ON",
-        "TRACY_DELAYED_INIT": "ON",
-        "TRACY_MANUAL_LIFETIME": "ON"
+        "TRACY_ENABLE": "ON"
       }
     },
     {
@@ -32,10 +33,7 @@
         "GODOTCPP_TARGET": "template_debug",
         "CMAKE_CONFIGURATION_TYPES": "RelWithDebInfo",
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "TRACY_ENABLE": "ON",
-        "TRACY_ON_DEMAND": "ON",
-        "TRACY_DELAYED_INIT": "ON",
-        "TRACY_MANUAL_LIFETIME": "ON"
+        "TRACY_ENABLE": "ON"
       }
     },
     {
