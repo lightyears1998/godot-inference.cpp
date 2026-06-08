@@ -17,7 +17,11 @@
       "cacheVariables": {
         "GODOTCPP_TARGET": "template_debug",
         "CMAKE_CONFIGURATION_TYPES": "Debug",
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "TRACY_ENABLE": "ON",
+        "TRACY_ON_DEMAND": "ON",
+        "TRACY_DELAYED_INIT": "ON",
+        "TRACY_MANUAL_LIFETIME": "ON"
       }
     },
     {
@@ -26,8 +30,12 @@
       "binaryDir": "${sourceDir}/build/release_template_debug",
       "cacheVariables": {
         "GODOTCPP_TARGET": "template_debug",
-        "CMAKE_CONFIGURATION_TYPES": "Release",
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_CONFIGURATION_TYPES": "RelWithDebInfo",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "TRACY_ENABLE": "ON",
+        "TRACY_ON_DEMAND": "ON",
+        "TRACY_DELAYED_INIT": "ON",
+        "TRACY_MANUAL_LIFETIME": "ON"
       }
     },
     {
@@ -36,8 +44,8 @@
       "binaryDir": "${sourceDir}/build/release_template_release",
       "cacheVariables": {
         "GODOTCPP_TARGET": "template_release",
-        "CMAKE_CONFIGURATION_TYPES": "Release",
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_CONFIGURATION_TYPES": "RelWithDebInfo",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     }
   ]

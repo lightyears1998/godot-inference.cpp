@@ -16,6 +16,7 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
+#include <tracy/Tracy.hpp>
 
 using namespace godot;
 
@@ -24,6 +25,10 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE) {
 		return;
 	}
+
+#ifdef TRACY_ENABLE
+	tracy::StartupProfiler();
+#endif
 
 	main_thread_id = std::this_thread::get_id();
 
@@ -52,6 +57,10 @@ void uninitialize_gdextension_types(ModuleInitializationLevel p_level) {
 	if (!Engine::get_singleton()->is_editor_hint()) {
 		LLMEngine::free_backend();
 	}
+
+#ifdef TRACY_ENABLE
+	tracy::ShutdownProfiler();
+#endif
 }
 
 extern "C"

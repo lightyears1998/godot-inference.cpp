@@ -5,6 +5,7 @@
 #include "llm_model.hpp"
 #include "utils.hpp"
 
+#include <tracy/Tracy.hpp>
 #include <llama.h>
 #include <simdutf.h>
 #include <boost/assert/source_location.hpp>
@@ -43,9 +44,18 @@ LLMChat::LLMChat(const godot::Ref<LLMModel> &model, const godot::Ref<LLMChatPara
 	: model_(model), params_(params) {
 	print_line(BOOST_CURRENT_FUNCTION);
 
+	update_sampler();
+
+	llama_sampler_seq_config seq_config { .seq_id = 0, .sampler = sampler_.get() };
+
 	llama_context_params ctx_params = llama_context_default_params();
 	ctx_params.n_ctx = params->context_length_;
 	ctx_params.n_batch = 2048;
+	ctx_params.n_ubatch = 512;
+	// ctx_params.type_k = ggml_type::GGML_TYPE_Q8_0; // TODO expose as param
+	// ctx_params.type_v = ggml_type::GGML_TYPE_Q8_0;
+	// ctx_params.samplers = &seq_config;
+	// ctx_params.n_samplers = 1;
 
 	llama_context* ctx = llama_init_from_model(model_->model(), ctx_params);
 	if (!ctx) {
@@ -53,8 +63,7 @@ LLMChat::LLMChat(const godot::Ref<LLMModel> &model, const godot::Ref<LLMChatPara
 		return;
 	}
 	ctx_ = { ctx, &llama_free };
-
-	update_sampler();
+	llama_set_warmup(ctx_.get(), true);
 
 	job_thread_ = std::jthread([&](std::stop_token stoken) {
 		job_routine(std::move(stoken));
@@ -178,15 +187,25 @@ void LLMChat::job_routine(std::stop_token stoken) {
 		auto t_start = std::chrono::steady_clock::now();
 
 		while (!stoken.stop_requested() && !cancel_requested_.load()) {
-			int n_ctx = llama_n_ctx(ctx_.get());
-			int n_ctx_used = llama_memory_seq_pos_max(llama_get_memory(ctx_.get()), 0) + 1;
-			if (n_ctx_used + batch.n_tokens > n_ctx) {
-				print_error("context size exceeded!");
-				break;
+			ZoneScopedN("job routine loop")
+
+			{
+				ZoneScopedN("llama_memory_seq_pos_max");
+
+				int n_ctx = llama_n_ctx(ctx_.get());
+				int n_ctx_used = llama_memory_seq_pos_max(llama_get_memory(ctx_.get()), 0) + 1;
+				if (n_ctx_used + batch.n_tokens > n_ctx) {
+					print_error("context size exceeded!");
+					break;
+				}
 			}
 
-			ret = llama_decode(ctx_.get(), batch);
-			n_response_token++;
+			{
+				ZoneScopedN("llama_decode");
+
+				ret = llama_decode(ctx_.get(), batch);
+				n_response_token++;
+			}
 
 			if (ret != 0) {
 				print_error("failed to decode, ret: ", ret);
@@ -194,14 +213,24 @@ void LLMChat::job_routine(std::stop_token stoken) {
 			}
 
 			llama_token sampled_token;
-			sampled_token = llama_sampler_sample(sampler_.get(), ctx_.get(), -1);
+			{
+				ZoneScopedN("llama_sampler_sample");
+
+				// sampled_token = llama_get_sampled_token_ith(ctx_.get(), batch.n_tokens - 1);
+				sampled_token = llama_sampler_sample(sampler_.get(), ctx_.get(), -1);
+			}
 
 			if (llama_vocab_is_eog(vocab, sampled_token)) {
 				break;
 			}
 
 			char buf[256];
-			int n = llama_token_to_piece(vocab, sampled_token, buf, sizeof(buf), 0, true);
+			int n;
+			{
+				ZoneScopedN("llama_token_to_piece");
+
+				n = llama_token_to_piece(vocab, sampled_token, buf, sizeof(buf), 0, true);
+			}
 			if (n < 0) {
 				print_error("failed to convert token to piece");
 				break;
@@ -209,6 +238,8 @@ void LLMChat::job_routine(std::stop_token stoken) {
 			std::string piece(buf, n);
 
 			{
+				ZoneScopedN("pending_outbound_piece_");
+
 				std::lock_guard lock(mutex_);
 				pending_outbound_piece_ += piece;
 			}
@@ -272,7 +303,7 @@ void LLMChat::update_sampler() {
 	llama_sampler_chain_add(sampler_ptr, llama_sampler_init_top_k(params_->top_k_));
 
 	// TYPICAL_P, disabled
-#if false
+#if 0
 	llama_sampler_chain_add(sampler_ptr, llama_sampler_init_typical(1, 0));
 #endif
 
@@ -290,6 +321,7 @@ void LLMChat::update_sampler() {
 	// TEMPERATURE
 	llama_sampler_chain_add(sampler_ptr, llama_sampler_init_temp(params_->temperature_));
 
+	// dist
 	llama_sampler_chain_add(sampler_ptr, llama_sampler_init_dist(LLAMA_DEFAULT_SEED));
 }
 

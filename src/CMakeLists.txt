@@ -25,6 +25,7 @@ add_library(${LIBNAME} SHARED
 target_link_libraries(${LIBNAME} PRIVATE
         godot-cpp
         core
+        Tracy::TracyClient
         Boost::assert
         fmt::fmt
         gsl-lite::gsl-lite
