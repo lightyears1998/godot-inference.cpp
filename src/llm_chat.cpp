@@ -13,6 +13,7 @@
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
 #include <shared_mutex>
+#include <gsl/gsl>
 
 using namespace godot;
 

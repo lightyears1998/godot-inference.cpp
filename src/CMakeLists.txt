@@ -28,7 +28,7 @@ target_link_libraries(${LIBNAME} PRIVATE
         Tracy::TracyClient
         Boost::assert
         fmt::fmt
-        gsl-lite::gsl-lite
+        Microsoft.GSL::GSL
         llama
         simdutf::simdutf
 )
