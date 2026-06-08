@@ -8,11 +8,11 @@ class LLMChatParameters : public godot::Resource {
 public:
 	LLMChatParameters() = default;
 
-	int context_length_ = 32768;
+	int context_length_ = 16384;
 	bool thinking_enabled_ = false;
 	float temperature_ = 0.8f;
 	float top_p_ = 1.0f;
-	int top_k_ = 40;
+	int top_k_ = 20;
 	float min_p_ = 0.05f;
 	float presence_penalty_ = 0.0f;
 	float repeat_penalty_ = 1.1f;
