@@ -47,16 +47,12 @@ LLMChat::LLMChat(const godot::Ref<LLMModel> &model, const godot::Ref<LLMChatPara
 
 	update_sampler();
 
-	llama_sampler_seq_config seq_config { .seq_id = 0, .sampler = sampler_.get() };
-
 	llama_context_params ctx_params = llama_context_default_params();
 	ctx_params.n_ctx = params->context_length_;
 	ctx_params.n_batch = 2048;
 	ctx_params.n_ubatch = 512;
-	// ctx_params.type_k = ggml_type::GGML_TYPE_Q8_0; // TODO expose as param
-	// ctx_params.type_v = ggml_type::GGML_TYPE_Q8_0;
-	// ctx_params.samplers = &seq_config;
-	// ctx_params.n_samplers = 1;
+	ctx_params.type_k = GGML_TYPE_Q8_0; // TODO expose as param
+	ctx_params.type_v = GGML_TYPE_Q8_0;
 
 	llama_context* ctx = llama_init_from_model(model_->model(), ctx_params);
 	if (!ctx) {
@@ -181,44 +177,64 @@ void LLMChat::job_routine(std::stop_token stoken) {
 		if (stoken.stop_requested()) break;
 
 		std::string response;
-		llama_token new_token_id;
-		auto batch = llama_batch_get_one(tokens.data(), tokens.size());
+
+		llama_batch batch = llama_batch_init(tokens.size(), 0, 1);
+		auto _ = gsl::finally([&] { llama_batch_free(batch); });
+
+		constexpr auto clear_batch = [](llama_batch &batch) -> void {
+			batch.n_tokens = 0;
+		};
+
+		constexpr auto add_token = [](llama_batch& batch, int pos, llama_token token, bool logits) -> void {
+			batch.token[batch.n_tokens] = token;
+			batch.pos[batch.n_tokens] = pos;
+			batch.n_seq_id[batch.n_tokens] = 1;
+			batch.seq_id[batch.n_tokens][0] = 0;
+			batch.logits[batch.n_tokens] = logits;
+
+			batch.n_tokens++;
+		};
+
+		constexpr auto fill_batch = [add_token](llama_batch &batch, const std::vector<llama_token> &tokens, const int start_pos) -> void {
+			for (int i = 0; i < tokens.size(); ++i) {
+				add_token(batch, start_pos + i, tokens[i], false);
+			}
+			batch.logits[batch.n_tokens - 1] = true;
+		};
+
+		int seq_next_pos = llama_memory_seq_pos_max(llama_get_memory(ctx_.get()), 0) + 1;
+		fill_batch(batch, tokens, seq_next_pos);
 
 		int n_response_token = 0;
 		auto t_start = std::chrono::steady_clock::now();
 
+		int n_ctx = llama_n_ctx(ctx_.get());
 		while (!stoken.stop_requested() && !cancel_requested_.load()) {
-			ZoneScopedN("job routine loop")
+			ZoneScopedN("job_routine loop")
 
-			{
-				ZoneScopedN("llama_memory_seq_pos_max");
-
-				int n_ctx = llama_n_ctx(ctx_.get());
-				int n_ctx_used = llama_memory_seq_pos_max(llama_get_memory(ctx_.get()), 0) + 1;
-				if (n_ctx_used + batch.n_tokens > n_ctx) {
-					print_error("context size exceeded!");
-					break;
-				}
+			int n_ctx_used = llama_memory_seq_pos_max(llama_get_memory(ctx_.get()), 0) + 1;
+			if (n_ctx_used + batch.n_tokens > n_ctx) {
+				print_error("context size exceeded!");
+				break;
 			}
 
 			{
 				ZoneScopedN("llama_decode");
-
 				ret = llama_decode(ctx_.get(), batch);
-				n_response_token++;
 			}
 
 			if (ret != 0) {
 				print_error("failed to decode, ret: ", ret);
 				break;
 			}
+			n_ctx_used = llama_memory_seq_pos_max(llama_get_memory(ctx_.get()), 0) + 1;
+			n_response_token++;
 
 			llama_token sampled_token;
 			{
 				ZoneScopedN("llama_sampler_sample");
 
-				// sampled_token = llama_get_sampled_token_ith(ctx_.get(), batch.n_tokens - 1);
-				sampled_token = llama_sampler_sample(sampler_.get(), ctx_.get(), -1);
+				sampled_token = llama_sampler_sample(sampler_.get(), ctx_.get(), batch.n_tokens - 1);
 			}
 
 			if (llama_vocab_is_eog(vocab, sampled_token)) {
@@ -246,8 +262,9 @@ void LLMChat::job_routine(std::stop_token stoken) {
 			}
 
 			response += piece;
-			new_token_id = sampled_token;
-			batch = llama_batch_get_one(&new_token_id, 1);
+
+			clear_batch(batch);
+			add_token(batch, n_ctx_used, sampled_token, true);
 		}
 
 		auto t_end = std::chrono::steady_clock::now();
