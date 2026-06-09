@@ -47,12 +47,19 @@ LLMChat::LLMChat(const godot::Ref<LLMModel> &model, const godot::Ref<LLMChatPara
 
 	update_sampler();
 
+	llama_sampler_seq_config config {
+		.seq_id = 0,
+		.sampler = sampler_.get()
+	};
+
 	llama_context_params ctx_params = llama_context_default_params();
 	ctx_params.n_ctx = params->context_length_;
 	ctx_params.n_batch = 2048;
 	ctx_params.n_ubatch = 512;
 	ctx_params.type_k = GGML_TYPE_Q8_0; // TODO expose as param
 	ctx_params.type_v = GGML_TYPE_Q8_0;
+	ctx_params.samplers = &config;
+	ctx_params.n_samplers = 1;
 
 	llama_context* ctx = llama_init_from_model(model_->model(), ctx_params);
 	if (!ctx) {
@@ -205,10 +212,10 @@ void LLMChat::job_routine(std::stop_token stoken) {
 		int seq_next_pos = llama_memory_seq_pos_max(llama_get_memory(ctx_.get()), 0) + 1;
 		fill_batch(batch, tokens, seq_next_pos);
 
+		int n_ctx = llama_n_ctx(ctx_.get());
 		int n_response_token = 0;
 		auto t_start = std::chrono::steady_clock::now();
 
-		int n_ctx = llama_n_ctx(ctx_.get());
 		while (!stoken.stop_requested() && !cancel_requested_.load()) {
 			ZoneScopedN("job_routine loop")
 
@@ -252,16 +259,15 @@ void LLMChat::job_routine(std::stop_token stoken) {
 				print_error("failed to convert token to piece");
 				break;
 			}
-			std::string piece(buf, n);
 
 			{
 				ZoneScopedN("pending_outbound_piece_");
 
 				std::lock_guard lock(mutex_);
-				pending_outbound_piece_ += piece;
+				pending_outbound_piece_ += buf;
 			}
 
-			response += piece;
+			response += buf;
 
 			clear_batch(batch);
 			add_token(batch, n_ctx_used, sampled_token, true);
@@ -341,6 +347,10 @@ void LLMChat::update_sampler() {
 
 	// dist
 	llama_sampler_chain_add(sampler_ptr, llama_sampler_init_dist(LLAMA_DEFAULT_SEED));
+
+	if (ctx_) {
+		llama_set_sampler(ctx_.get(), 0, sampler_ptr);
+	}
 }
 
 void LLMChat::input_message_locked(const godot::StringName &role, const godot::String &message) {
