@@ -39,7 +39,7 @@ func clear_chat_history() -> void:
 
 
 func _setup_chat() -> void:
-	await LLMBackend.model_loaded
+	await InferenceBackend.model_loaded
 	var model := InferenceEngine.get_model()
 
 	chat = model.start_general_chat()

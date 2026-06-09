@@ -8,7 +8,10 @@ var _is_ready := false
 
 
 func _ready() -> void:
-	InferenceEngine.request_load_model()
+	var model_path: String = ProjectSettings.get_setting("llama.cpp/model_path")
+	var asr_model_path: String = ProjectSettings.get_setting("llama.cpp/asr_model_path")
+
+	InferenceEngine.request_load_model(model_path)
 	await _report_load_progress()
 
 

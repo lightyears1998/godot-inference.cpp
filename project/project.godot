@@ -34,6 +34,7 @@ window/stretch/mode="canvas_items"
 [llama.cpp]
 
 model_path="model.gguf"
+asr_model_path="asr_model.gguf"
 
 [rendering]
 
