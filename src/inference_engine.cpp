@@ -9,6 +9,7 @@
 #include <boost/current_function.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <iostream>
+#include <utility>
 
 using namespace godot;
 
@@ -17,13 +18,15 @@ void InferenceEngine::_bind_methods() {
 	BIND_ENUM_CONSTANT(MODEL_LOADING);
 	BIND_ENUM_CONSTANT(MODEL_READY);
 
-	ClassDB::bind_static_method("InferenceEngine", D_METHOD("tick"), &InferenceEngine::tick);
-	ClassDB::bind_static_method("InferenceEngine", D_METHOD("request_load_model", "path"), &InferenceEngine::request_load_model, DEFVAL(""));
-	ClassDB::bind_static_method("InferenceEngine", D_METHOD("unload_model"), &InferenceEngine::unload_model);
-	ClassDB::bind_static_method("InferenceEngine", D_METHOD("get_model_load_status"), &InferenceEngine::model_load_status);
-	ClassDB::bind_static_method("InferenceEngine", D_METHOD("get_model_load_progress"), &InferenceEngine::model_load_progress);
-	ClassDB::bind_static_method("InferenceEngine", D_METHOD("get_model"), &InferenceEngine::model);
-	ClassDB::bind_static_method("InferenceEngine", D_METHOD("get_last_error"), &InferenceEngine::last_error);
+	ClassDB::bind_method(D_METHOD("tick"), &InferenceEngine::tick);
+	ClassDB::bind_method(D_METHOD("request_load_model", "path"), &InferenceEngine::request_load_model);
+	ClassDB::bind_method(D_METHOD("unload_model"), &InferenceEngine::unload_model);
+	ClassDB::bind_method(D_METHOD("get_model_load_status"), &InferenceEngine::model_load_status);
+	ClassDB::bind_method(D_METHOD("get_model_load_progress"), &InferenceEngine::model_load_progress);
+	ClassDB::bind_method(D_METHOD("get_model"), &InferenceEngine::model);
+	ClassDB::bind_method(D_METHOD("get_last_error"), &InferenceEngine::last_error);
+
+	ADD_SIGNAL(MethodInfo("model_loaded", PropertyInfo(Variant::STRING, "path")));
 }
 
 void InferenceEngine::init_backend() {
@@ -67,9 +70,10 @@ void InferenceEngine::free_backend() {
 	llama_backend_free();
 }
 
-void InferenceEngine::request_load_model(String path) {
+void InferenceEngine::request_load_model(const String& path) {
 	if (path.is_empty()) {
-		path = String(ProjectSettings::get_singleton()->get_setting(SETTINGS_KEY_MODEL_PATH, "model.gguf"));
+		print_error("Model path cannot be empty.");
+		return;
 	}
 
 	// Not a strict check, but should be enough for now. 
@@ -80,7 +84,9 @@ void InferenceEngine::request_load_model(String path) {
 
 	load_progress_ = 0.0f;
 
-	background_thread_ = std::jthread(&InferenceEngine::load_model, ustr(path));
+	background_thread_ = std::jthread([=, this](std::stop_token stoken) {
+		load_model(std::move(stoken), ustr(path));
+	});
 }
 
 void InferenceEngine::unload_model() {
@@ -88,7 +94,7 @@ void InferenceEngine::unload_model() {
 	model_.unref();
 }
 
-void InferenceEngine::load_model(std::stop_token stoken, std::string path) {
+void InferenceEngine::load_model(std::stop_token stoken, const std::string& path) {
 	{	
 		std::unique_lock lock(mutex_);
 		model_status_ = MODEL_LOADING;
@@ -96,15 +102,22 @@ void InferenceEngine::load_model(std::stop_token stoken, std::string path) {
 	}
 
 	try {
-		const llama_progress_callback progress_cb = [](float progress, void* stoken) -> bool {
-			load_progress_ = progress;
-			return !static_cast<std::stop_token*>(stoken)->stop_requested();
+		struct {
+			decltype(load_progress_)* load_progress;
+			decltype(stoken)* stoken;
+		} llama_progress_callback_context { .load_progress = &load_progress_, .stoken = &stoken };
+
+		constexpr llama_progress_callback progress_cb = [](float progress, void* user_data) -> bool {
+			const auto ctx = static_cast<decltype(llama_progress_callback_context)*>(user_data);
+
+			ctx->load_progress->store(progress);
+			return !ctx->stoken->stop_requested();
 		};
 
 		llama_model_params model_params = llama_model_default_params();
 		model_params.n_gpu_layers = -1;
 		model_params.progress_callback = progress_cb;
-		model_params.progress_callback_user_data = &stoken;
+		model_params.progress_callback_user_data = &llama_progress_callback_context;
 
 		LLMModel::llama_model_ptr model = { llama_model_load_from_file(path.c_str(), model_params), &llama_model_free };
 		if (!model) {
@@ -125,6 +138,10 @@ void InferenceEngine::load_model(std::stop_token stoken, std::string path) {
 		model_status_ = MODEL_EMPTY;
 		load_progress_ = 0;
 	}
+}
+
+void InferenceEngine::model_loaded(const String& model_path) {
+	emit_signal("model_loaded", model_path);
 }
 
 InferenceEngine::ModelStatus InferenceEngine::model_load_status() {

@@ -32,20 +32,22 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 
 	main_thread_id = std::this_thread::get_id();
 
-	ClassDB::register_abstract_class<InferenceEngine>();
+	ClassDB::register_class<InferenceEngine>();
 	ClassDB::register_class<LLMModel>();
 	ClassDB::register_class<LLMChatParameters>();
 	ClassDB::register_class<LLMChat>();
 	ClassDB::register_class<LLMChatMessage>();
 	ClassDB::register_class<Benchmark>();
 
-	auto *ps = ProjectSettings::get_singleton();
-	if (!ps->has_setting(SETTINGS_KEY_MODEL_PATH)) {
-		ps->set_setting(SETTINGS_KEY_MODEL_PATH, "model.gguf");
-	}
+	const auto godot_engine = Engine::get_singleton();
 
-	if (!Engine::get_singleton()->is_editor_hint()) {
-		InferenceEngine::init_backend();
+	if (engine_instance == nullptr) {
+		engine_instance = memnew(InferenceEngine);
+		godot_engine->register_singleton("InferenceEngine", engine_instance);
+
+		if (!godot_engine->is_editor_hint()) {
+			engine_instance->init_backend();
+		}
 	}
 }
 
@@ -54,8 +56,16 @@ void uninitialize_gdextension_types(ModuleInitializationLevel p_level) {
 		return;
 	}
 
-	if (!Engine::get_singleton()->is_editor_hint()) {
-		InferenceEngine::free_backend();
+	const auto godot_engine = Engine::get_singleton();
+
+	if (engine_instance != nullptr) {
+		godot_engine->unregister_singleton("InferenceEngine");
+		if (!godot_engine->is_editor_hint()) {
+			engine_instance->free_backend();
+		}
+
+		memdelete(engine_instance);
+		engine_instance = nullptr;
 	}
 
 #ifdef TRACY_ENABLE
