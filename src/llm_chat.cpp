@@ -67,7 +67,6 @@ LLMChat::LLMChat(const godot::Ref<LLMModel> &model, const godot::Ref<LLMChatPara
 		return;
 	}
 	ctx_ = { ctx, &llama_free };
-	llama_set_warmup(ctx_.get(), true);
 
 	job_thread_ = std::jthread([&](std::stop_token stoken) {
 		job_routine(std::move(stoken));
@@ -264,10 +263,10 @@ void LLMChat::job_routine(std::stop_token stoken) {
 				ZoneScopedN("pending_outbound_piece_");
 
 				std::lock_guard lock(mutex_);
-				pending_outbound_piece_ += buf;
+				pending_outbound_piece_.append(buf, n);
 			}
 
-			response += buf;
+			response.append(buf, n);
 
 			clear_batch(batch);
 			add_token(batch, n_ctx_used, sampled_token, true);
