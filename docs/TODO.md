@@ -9,6 +9,7 @@
 
 ## Refactoring
 
+- [ ] Handle stateful Godot Ref types better.
 - [ ] Support multiple models loading.
 
 ## Misc
