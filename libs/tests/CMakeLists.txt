@@ -6,6 +6,7 @@ target_link_libraries(tests PRIVATE
         core
         fmt::fmt
         llama
+        Tracy::TracyClient
 )
 
 install(TARGETS tests DESTINATION tools)

@@ -1,12 +1,14 @@
 #include "core/utils.hpp"
 
 #include <fmt/format.h>
-#include <llama.h>
 #include <ggml.h>
+#include <llama.h>
+#include <chrono>
 #include <clocale>
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
+#include <tracy/Tracy.hpp>
 
 int test1(std::string model_path) {
 	// load dynamic backends
@@ -28,10 +30,27 @@ int test1(std::string model_path) {
 
 	const llama_vocab *vocab = llama_model_get_vocab(model);
 
+	// initialize the sampler
+	auto sampler_params = llama_sampler_chain_default_params();
+	llama_sampler *smpl = llama_sampler_chain_init(sampler_params);
+	// llama_sampler_chain_add(smpl, llama_sampler_init_penalties(64, 1., 0, 1.5));
+	llama_sampler_chain_add(smpl, llama_sampler_init_top_k(20));
+	llama_sampler_chain_add(smpl, llama_sampler_init_top_p(0.8, 0));
+	llama_sampler_chain_add(smpl, llama_sampler_init_min_p(0., 0));
+	llama_sampler_chain_add(smpl, llama_sampler_init_temp(0.7));
+	llama_sampler_chain_add(smpl, llama_sampler_init_dist(LLAMA_DEFAULT_SEED));
+
+	llama_sampler_seq_config config { .seq_id = 0, .sampler = smpl };
+
 	// initialize the context
 	llama_context_params ctx_params = llama_context_default_params();
-	ctx_params.n_ctx = 26210;
+	ctx_params.n_ctx = 16000;
 	ctx_params.n_batch = 2048;
+	ctx_params.n_ubatch = 512;
+	ctx_params.type_k = ggml_type::GGML_TYPE_Q8_0;
+	ctx_params.type_v = ggml_type::GGML_TYPE_Q8_0;
+	ctx_params.samplers = &config; // NOTE: backedn sampler, might help or not
+	ctx_params.n_samplers = 1;
 
 	llama_context *ctx = llama_init_from_model(model, ctx_params);
 	if (!ctx) {
@@ -39,57 +58,91 @@ int test1(std::string model_path) {
 		return true;
 	}
 
-	// initialize the sampler
-	auto sampler_params = llama_sampler_chain_default_params();
-	llama_sampler *smpl = llama_sampler_chain_init(sampler_params);
-	llama_sampler_chain_add(smpl, llama_sampler_init_min_p(0.05f, 1));
-	llama_sampler_chain_add(smpl, llama_sampler_init_temp(0.8f));
-	llama_sampler_chain_add(smpl, llama_sampler_init_dist(LLAMA_DEFAULT_SEED));
-
-	std::string test = "<think></think>This is a bad apple, and that too.";
-	std::vector<llama_token> tokens(1024);
-	llama_tokenize(vocab, test.c_str(), test.size(), tokens.data(), tokens.size(), true, true);
-	llama_tokenize(vocab, test.c_str(), test.size(), tokens.data(), tokens.size(), true, false);
-	llama_tokenize(vocab, test.c_str(), test.size(), tokens.data(), tokens.size(), false, false);
-
-	for (auto token : tokens) {
-		auto attr = llama_token_get_attr(vocab, token);
-		std::puts(std::to_string(attr).c_str());
-	}
+	// std::string test = "<think></think>This is a bad apple, and that too.";
+	// std::vector<llama_token> tokens(1024);
+	// llama_tokenize(vocab, test.c_str(), test.size(), tokens.data(), tokens.size(), true, true);
+	// llama_tokenize(vocab, test.c_str(), test.size(), tokens.data(), tokens.size(), true, false);
+	// llama_tokenize(vocab, test.c_str(), test.size(), tokens.data(), tokens.size(), false, false);
+	//
+	// for (auto token : tokens) {
+	// 	auto attr = llama_token_get_attr(vocab, token);
+	// 	std::puts(std::to_string(attr).c_str());
+	// }
 
 	// helper function to evaluate a prompt and generate a response
 	auto generate = [&](const std::string &prompt) {
+		ZoneScopedN("generate");
+
 		std::string response;
 
-		const bool is_first = llama_memory_seq_pos_max(llama_get_memory(ctx), 0) == -1;
-
 		// tokenize the prompt
-		const int n_prompt_tokens = -llama_tokenize(vocab, prompt.c_str(), prompt.size(), NULL, 0, is_first, true);
+		const int n_prompt_tokens = -llama_tokenize(vocab, prompt.c_str(), prompt.size(), NULL, 0, false, true);
 		std::vector<llama_token> prompt_tokens(n_prompt_tokens);
-		if (llama_tokenize(vocab, prompt.c_str(), prompt.size(), prompt_tokens.data(), prompt_tokens.size(), is_first, true) < 0) {
+		if (llama_tokenize(vocab, prompt.c_str(), prompt.size(), prompt_tokens.data(), prompt_tokens.size(), false, true) < 0) {
 			GGML_ABORT("failed to tokenize the prompt\n");
 		}
 
+		constexpr auto clear_batch = [](llama_batch &batch) -> void {
+			batch.n_tokens = 0;
+		};
+
+		constexpr auto add_token = [](llama_batch& batch, int pos, llama_token token, bool logits) -> void {
+			batch.token[batch.n_tokens] = token;
+			batch.pos[batch.n_tokens] = pos;
+			batch.n_seq_id[batch.n_tokens] = 1;
+			batch.seq_id[batch.n_tokens][0] = 0;
+			batch.logits[batch.n_tokens] = logits;
+
+			batch.n_tokens++;
+		};
+
+		constexpr auto fill_batch = [add_token](llama_batch &batch, const std::vector<llama_token> &tokens, const int start_pos) -> void {
+			for (int i = 0; i < tokens.size(); ++i) {
+				add_token(batch, start_pos + i, tokens[i], false);
+			}
+			batch.logits[batch.n_tokens - 1] = true;
+		};
+
 		// prepare a batch for the prompt
-		llama_batch batch = llama_batch_get_one(prompt_tokens.data(), prompt_tokens.size());
+		llama_batch batch = llama_batch_init(prompt_tokens.size(), 0, 1);
 		llama_token new_token_id;
+
+		int seq_next_pos = llama_memory_seq_pos_max(llama_get_memory(ctx), 0) + 1;
+		fill_batch(batch, prompt_tokens, seq_next_pos);
+		seq_next_pos += prompt_tokens.size();
+
+		llama_synchronize(ctx);
+		int n_generated = 0;
+		auto t_start = std::chrono::steady_clock::now();
+		int n_ctx = llama_n_ctx(ctx);
 		while (true) {
 			// check if we have enough space in the context to evaluate this batch
-			int n_ctx = llama_n_ctx(ctx);
-			int n_ctx_used = llama_memory_seq_pos_max(llama_get_memory(ctx), 0) + 1;
-			if (n_ctx_used + batch.n_tokens > n_ctx) {
-				printf("\033[0m\n");
-				fprintf(stderr, "context size exceeded\n");
-				exit(0);
-			}
+			// int n_ctx_used = llama_memory_seq_pos_max(llama_get_memory(ctx), 0) + 1;
+			// if (n_ctx_used + batch.n_tokens > n_ctx) {
+			// 	printf("\033[0m\n");
+			// 	fprintf(stderr, "context size exceeded\n");
+			// 	exit(0);
+			// }
 
-			int ret = llama_decode(ctx, batch);
+			int ret;
+			{
+				ZoneScopedN("llama_decode");
+				ret = llama_decode(ctx, batch);
+			}
 			if (ret != 0) {
 				GGML_ABORT("failed to decode, ret = %d\n", ret);
 			}
 
 			// sample the next token
-			new_token_id = llama_sampler_sample(smpl, ctx, -1);
+			{
+				ZoneScopedN("llama_sampler_sample");
+				new_token_id = llama_sampler_sample(smpl, ctx, -1);
+			}
+			++n_generated;
+
+			if (n_generated == 1) {
+				t_start = std::chrono::steady_clock::now();
+			}
 
 			// is it an end of generation?
 			if (llama_vocab_is_eog(vocab, new_token_id)) {
@@ -97,19 +150,24 @@ int test1(std::string model_path) {
 			}
 
 			// convert the token to a string, print it and add it to the response
-			char buf[256];
-			int n = llama_token_to_piece(vocab, new_token_id, buf, sizeof(buf), 0, true);
-			if (n < 0) {
-				GGML_ABORT("failed to convert token to piece\n");
-			}
-			std::string piece(buf, n);
-			printf("%s", piece.c_str());
-			fflush(stdout);
-			response += piece;
+			// char buf[256];
+			// int n = llama_token_to_piece(vocab, new_token_id, buf, sizeof(buf), 0, true);
+			// if (n < 0) {
+			// 	GGML_ABORT("failed to convert token to piece\n");
+			// }
+			// std::string piece(buf, n);
+			// printf("%s", piece.c_str());
+			// fflush(stdout);
+			// response += piece;
 
 			// prepare the next batch with the sampled token
-			batch = llama_batch_get_one(&new_token_id, 1);
+			clear_batch(batch);
+			add_token(batch, seq_next_pos++, new_token_id, true);
 		}
+		auto t_end = std::chrono::steady_clock::now();
+		std::chrono::duration<double> duration = t_end - t_start;
+
+		printf("\ntokens_per_sec: %f\n", n_generated / duration.count());
 
 		return response;
 	};
@@ -143,6 +201,7 @@ int test1(std::string model_path) {
 
 		// remove previous messages to obtain the prompt to generate the response
 		std::string prompt(formatted.begin() + prev_len, formatted.begin() + new_len);
+		prompt += "<think>\n\n</think>\n\n";
 
 		// generate a response
 		printf("\033[33m");
@@ -205,10 +264,21 @@ int main(int argc, char** argv) {
     std::string model_path = core::acp_to_utf8(argv[1]);
 
 	llama_log_set([](enum ggml_log_level level, const char *text, void * /* user_data */) {
+		if (level < GGML_LOG_LEVEL_WARN) {
+			return;
+		}
 		fprintf(stderr, "%s", text);
 	}, nullptr);
 
+#if TRACY_ENABLE
+	tracy::StartupProfiler();
+#endif
+
 	test1(model_path);
+
+#if TRACY_ENABLE
+	tracy::ShutdownProfiler();
+#endif
 	// test_double_free(model_path);
 
 	return 0;
