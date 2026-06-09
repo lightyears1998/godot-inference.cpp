@@ -26,7 +26,7 @@ void InferenceEngine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_model"), &InferenceEngine::model);
 	ClassDB::bind_method(D_METHOD("get_last_error"), &InferenceEngine::last_error);
 
-	ADD_SIGNAL(MethodInfo("model_loaded", PropertyInfo(Variant::STRING, "path")));
+	ADD_SIGNAL(MethodInfo("model_loaded", PropertyInfo(Variant::STRING, "path"), PropertyInfo(Variant::OBJECT, "model", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT, "LLMModel")));
 }
 
 void InferenceEngine::init_backend() {
@@ -127,6 +127,7 @@ void InferenceEngine::load_model(std::stop_token stoken, const std::string& path
 		std::unique_lock lock(mutex_);
 		model_ = Ref<LLMModel>(memnew(LLMModel(std::move(model))));
 		model_status_ = MODEL_READY;
+		model_loaded(gstr(path), model_);
 	} catch (const std::exception& e) {
 		std::unique_lock lock(mutex_);
 		last_error_ = e.what();
@@ -140,8 +141,8 @@ void InferenceEngine::load_model(std::stop_token stoken, const std::string& path
 	}
 }
 
-void InferenceEngine::model_loaded(const String& model_path) {
-	emit_signal("model_loaded", model_path);
+void InferenceEngine::model_loaded(const String& model_path, const Ref<LLMModel>& model) {
+	call_deferred("emit_signal", "model_loaded", model_path, model);
 }
 
 InferenceEngine::ModelStatus InferenceEngine::model_load_status() {

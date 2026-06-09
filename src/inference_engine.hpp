@@ -45,7 +45,7 @@ private:
 	std::string last_error_;
 
 	void load_model(std::stop_token, const std::string& path);
-	void model_loaded(const godot::String& model_path);
+	void model_loaded(const godot::String &model_path, const godot::Ref<LLMModel>& model);
 };
 
 VARIANT_ENUM_CAST(InferenceEngine::ModelStatus);

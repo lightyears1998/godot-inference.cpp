@@ -8,6 +8,8 @@ var _is_ready := false
 
 
 func _ready() -> void:
+	InferenceEngine.model_loaded.connect(_on_model_loaded)
+
 	var model_path: String = ProjectSettings.get_setting("llama.cpp/model_path")
 	var asr_model_path: String = ProjectSettings.get_setting("llama.cpp/asr_model_path")
 
@@ -44,3 +46,7 @@ func wait_until_ready() -> void:
 	if not _is_ready:
 		await model_loaded
 	return
+
+
+func _on_model_loaded(path: String, model: LLMModel):
+	print("_on_model_loaded: ", path, ": ", model)
