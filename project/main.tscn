@@ -3,6 +3,8 @@
 [ext_resource type="Script" uid="uid://bkwk40ybs8kgm" path="res://main.gd" id="1_0xm2m"]
 [ext_resource type="Script" uid="uid://cdmukmgdhd4td" path="res://text_edit.gd" id="2_h2yge"]
 
+[sub_resource type="AudioStreamMicrophone" id="AudioStreamMicrophone_0xm2m"]
+
 [node name="Node" type="Node" unique_id=150510950]
 script = ExtResource("1_0xm2m")
 
@@ -65,9 +67,18 @@ offset_right = 1093.0
 offset_bottom = 608.0
 text = "Clear History"
 
-[node name="Button" type="Button" parent="." unique_id=322236367]
+[node name="ToggleMicButton" type="Button" parent="." unique_id=322236367]
+unique_name_in_owner = true
 offset_left = 840.0
 offset_top = 560.0
 offset_right = 878.0
 offset_bottom = 591.0
 text = "MIC"
+
+[node name="MicStreamRecorder" type="AudioStreamPlayer" parent="ToggleMicButton" unique_id=446221393]
+unique_name_in_owner = true
+stream = SubResource("AudioStreamMicrophone_0xm2m")
+bus = &"MicRecord"
+
+[node name="MicStreamPlayer" type="AudioStreamPlayer" parent="ToggleMicButton" unique_id=1001055898]
+unique_name_in_owner = true

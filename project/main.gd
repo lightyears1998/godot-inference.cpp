@@ -4,7 +4,12 @@ extends Node
 @onready var agent_text_edit: TextEdit = %AgentTextEdit
 @onready var user_confirm_button: Button = %UserConfirmButton
 @onready var clear_history_button: Button = $ClearHistoryButton
+@onready var toggle_mic_button: Button = %ToggleMicButton
+@onready var mic_stream_player: AudioStreamPlayer = %MicStreamPlayer
+@onready var mic_stream_recorder: AudioStreamPlayer = %MicStreamRecorder
 
+@onready var mic_bus_idx := AudioServer.get_bus_index("MicRecord")
+@onready var record_effect: AudioEffectRecord = AudioServer.get_bus_effect(mic_bus_idx, 0)
 
 var chat: LLMChat
 
@@ -13,6 +18,7 @@ func _ready() -> void:
 	user_text_edit.text_commited.connect(submit_text)
 	user_confirm_button.pressed.connect(func (): user_text_edit.commit_text())
 	clear_history_button.pressed.connect(clear_chat_history)
+	toggle_mic_button.pressed.connect(_toggle_mic_recording)
 	_setup_chat()
 
 
@@ -45,3 +51,17 @@ func _setup_chat() -> void:
 func _append_text(t: String) -> void:
 	agent_text_edit.text += t;
 	agent_text_edit.scroll_to_end_of_text()
+
+
+func _toggle_mic_recording() -> void:
+	if record_effect.is_recording_active():
+		var mic_record := record_effect.get_recording()
+		record_effect.set_recording_active(false)
+		mic_stream_recorder.stop()
+		mic_stream_player.stream = mic_record
+		mic_stream_player.play()
+		toggle_mic_button.text = "MIC"
+	else:
+		mic_stream_recorder.play()
+		record_effect.set_recording_active(true)
+		toggle_mic_button.text = "..."
