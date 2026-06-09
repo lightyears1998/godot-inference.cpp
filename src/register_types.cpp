@@ -3,10 +3,10 @@
 #include "benchmark.hpp"
 #include "constants.hpp"
 #include "globals.hpp"
+#include "inference_engine.hpp"
 #include "llm_chat.hpp"
 #include "llm_chat_message.hpp"
 #include "llm_chat_parameters.hpp"
-#include "llm_engine.hpp"
 #include "llm_model.hpp"
 
 #include <clocale>
@@ -32,7 +32,7 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 
 	main_thread_id = std::this_thread::get_id();
 
-	ClassDB::register_abstract_class<LLMEngine>();
+	ClassDB::register_abstract_class<InferenceEngine>();
 	ClassDB::register_class<LLMModel>();
 	ClassDB::register_class<LLMChatParameters>();
 	ClassDB::register_class<LLMChat>();
@@ -45,7 +45,7 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	}
 
 	if (!Engine::get_singleton()->is_editor_hint()) {
-		LLMEngine::init_backend();
+		InferenceEngine::init_backend();
 	}
 }
 
@@ -55,7 +55,7 @@ void uninitialize_gdextension_types(ModuleInitializationLevel p_level) {
 	}
 
 	if (!Engine::get_singleton()->is_editor_hint()) {
-		LLMEngine::free_backend();
+		InferenceEngine::free_backend();
 	}
 
 #ifdef TRACY_ENABLE

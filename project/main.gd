@@ -31,8 +31,8 @@ func clear_chat_history() -> void:
 
 
 func _setup_chat() -> void:
-	await LLMBackend.model_loaded
-	var model := LLMEngine.get_model()
+	await InferenceBackend.model_loaded
+	var model := InferenceEngine.get_model()
 
 	var t1 = Time.get_ticks_msec()
 	chat = model.start_general_chat()

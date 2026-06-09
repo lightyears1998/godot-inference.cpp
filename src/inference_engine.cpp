@@ -1,4 +1,4 @@
-#include "llm_engine.hpp"
+#include "inference_engine.hpp"
 
 #include "constants.hpp"
 #include "godot_cpp/classes/project_settings.hpp"
@@ -12,21 +12,21 @@
 
 using namespace godot;
 
-void LLMEngine::_bind_methods() {
+void InferenceEngine::_bind_methods() {
 	BIND_ENUM_CONSTANT(MODEL_EMPTY);
 	BIND_ENUM_CONSTANT(MODEL_LOADING);
 	BIND_ENUM_CONSTANT(MODEL_READY);
 
-	ClassDB::bind_static_method("LLMEngine", D_METHOD("tick"), &LLMEngine::tick);
-	ClassDB::bind_static_method("LLMEngine", D_METHOD("request_load_model", "path"), &LLMEngine::request_load_model, DEFVAL(""));
-	ClassDB::bind_static_method("LLMEngine", D_METHOD("unload_model"), &LLMEngine::unload_model);
-	ClassDB::bind_static_method("LLMEngine", D_METHOD("get_model_load_status"), &LLMEngine::model_load_status);
-	ClassDB::bind_static_method("LLMEngine", D_METHOD("get_model_load_progress"), &LLMEngine::model_load_progress);
-	ClassDB::bind_static_method("LLMEngine", D_METHOD("get_model"), &LLMEngine::model);
-	ClassDB::bind_static_method("LLMEngine", D_METHOD("get_last_error"), &LLMEngine::last_error);
+	ClassDB::bind_static_method("InferenceEngine", D_METHOD("tick"), &InferenceEngine::tick);
+	ClassDB::bind_static_method("InferenceEngine", D_METHOD("request_load_model", "path"), &InferenceEngine::request_load_model, DEFVAL(""));
+	ClassDB::bind_static_method("InferenceEngine", D_METHOD("unload_model"), &InferenceEngine::unload_model);
+	ClassDB::bind_static_method("InferenceEngine", D_METHOD("get_model_load_status"), &InferenceEngine::model_load_status);
+	ClassDB::bind_static_method("InferenceEngine", D_METHOD("get_model_load_progress"), &InferenceEngine::model_load_progress);
+	ClassDB::bind_static_method("InferenceEngine", D_METHOD("get_model"), &InferenceEngine::model);
+	ClassDB::bind_static_method("InferenceEngine", D_METHOD("get_last_error"), &InferenceEngine::last_error);
 }
 
-void LLMEngine::init_backend() {
+void InferenceEngine::init_backend() {
 	print_line(BOOST_CURRENT_FUNCTION);
 
 	std::unique_lock lock(mutex_);
@@ -36,22 +36,20 @@ void LLMEngine::init_backend() {
 			return;
 		}
 
-		String log(text);
-		log.resize(log.length() - 1);
-		print_line(log);
+		print_line(String(text).rstrip("\n"));
 	}, nullptr);
 
 	llama_backend_init();
 }
 
-void LLMEngine::tick() {
+void InferenceEngine::tick() {
 	std::shared_lock lock(mutex_);
 	if (model_.is_valid()) {
 		model_->tick();
 	}
 }
 
-void LLMEngine::free_backend() {
+void InferenceEngine::free_backend() {
 	print_line(BOOST_CURRENT_FUNCTION);
 
 	std::unique_lock lock(mutex_);
@@ -69,7 +67,7 @@ void LLMEngine::free_backend() {
 	llama_backend_free();
 }
 
-void LLMEngine::request_load_model(String path) {
+void InferenceEngine::request_load_model(String path) {
 	if (path.is_empty()) {
 		path = String(ProjectSettings::get_singleton()->get_setting(SETTINGS_KEY_MODEL_PATH, "model.gguf"));
 	}
@@ -82,15 +80,15 @@ void LLMEngine::request_load_model(String path) {
 
 	load_progress_ = 0.0f;
 
-	background_thread_ = std::jthread(&LLMEngine::load_model, ustr(path));
+	background_thread_ = std::jthread(&InferenceEngine::load_model, ustr(path));
 }
 
-void LLMEngine::unload_model() {
+void InferenceEngine::unload_model() {
 	std::unique_lock lock(mutex_);
 	model_.unref();
 }
 
-void LLMEngine::load_model(std::stop_token stoken, std::string path) {
+void InferenceEngine::load_model(std::stop_token stoken, std::string path) {
 	{	
 		std::unique_lock lock(mutex_);
 		model_status_ = MODEL_LOADING;
@@ -129,20 +127,20 @@ void LLMEngine::load_model(std::stop_token stoken, std::string path) {
 	}
 }
 
-LLMEngine::ModelStatus LLMEngine::model_load_status() {
+InferenceEngine::ModelStatus InferenceEngine::model_load_status() {
 	return model_status_;
 }
 
-float LLMEngine::model_load_progress() {
+float InferenceEngine::model_load_progress() {
 	return load_progress_;
 }
 
-Ref<LLMModel> LLMEngine::model() {
+Ref<LLMModel> InferenceEngine::model() {
 	std::shared_lock lock(mutex_);
 	return model_;
 }
 
-String LLMEngine::last_error() {
+String InferenceEngine::last_error() {
 	std::shared_lock lock(mutex_);
 	return String(last_error_.c_str());
 }

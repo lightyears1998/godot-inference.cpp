@@ -21,7 +21,7 @@ driver/enable_input=true
 
 [autoload]
 
-LLMBackend="*uid://cvbe67pp24uey"
+InferenceBackend="*uid://cvbe67pp24uey"
 
 [debug]
 

@@ -12,8 +12,8 @@
 
 // It is design to handle a single model right now.
 // docs/TODO.md
-class LLMEngine final : public godot::RefCounted {
-	GDCLASS(LLMEngine, godot::RefCounted)
+class InferenceEngine final : public godot::RefCounted {
+	GDCLASS(InferenceEngine, godot::RefCounted)
 
 public:
 	enum ModelStatus {
@@ -46,4 +46,4 @@ private:
 	static void load_model(std::stop_token, std::string path);
 };
 
-VARIANT_ENUM_CAST(LLMEngine::ModelStatus);
+VARIANT_ENUM_CAST(InferenceEngine::ModelStatus);

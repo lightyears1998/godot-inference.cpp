@@ -3,8 +3,8 @@ add_library(${LIBNAME} SHARED
         register_types.hpp
         utils.cpp
         utils.hpp
-        llm_engine.cpp
-        llm_engine.hpp
+        inference_engine.cpp
+        inference_engine.hpp
         llm_model.cpp
         llm_model.hpp
         llm_chat.hpp

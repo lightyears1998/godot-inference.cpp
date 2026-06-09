@@ -30,7 +30,7 @@ var _should_play: bool
 
 func _ready() -> void:
 	_utils = Utils.new(debug_enabled)
-	await LLMBackend.wait_until_ready()
+	await InferenceBackend.wait_until_ready()
 
 	play_audio_button.pressed.connect(_toggle_play)
 	line_label.text = line
