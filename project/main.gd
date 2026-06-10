@@ -12,6 +12,7 @@ extends Node
 @onready var record_effect: AudioEffectRecord = AudioServer.get_bus_effect(mic_bus_idx, 0)
 
 var chat: LLMChat
+var asr_model: ASRModel
 
 
 func _ready() -> void:
@@ -20,6 +21,12 @@ func _ready() -> void:
 	clear_history_button.pressed.connect(clear_chat_history)
 	toggle_mic_button.pressed.connect(_toggle_mic_recording)
 	_setup_chat()
+	InferenceBackend.asr_model_loaded.connect(_on_asr_model_loaded)
+
+
+func _on_asr_model_loaded(model: ASRModel) -> void:
+	asr_model = model
+	asr_model.speech_transcribed.connect(func (text): user_text_edit.text += text)
 
 
 func submit_text(text: String) -> void:
@@ -34,6 +41,7 @@ func clear_chat_history() -> void:
 	if not is_instance_valid(chat):
 		return
 	chat.clear_history()
+	agent_text_edit.text = ""
 
 
 func _setup_chat() -> void:
@@ -61,6 +69,7 @@ func _toggle_mic_recording() -> void:
 		mic_stream_player.stream = mic_record
 		mic_stream_player.play()
 		toggle_mic_button.text = "MIC"
+		asr_model.request_transcription(mic_record)
 	else:
 		mic_stream_recorder.play()
 		record_effect.set_recording_active(true)

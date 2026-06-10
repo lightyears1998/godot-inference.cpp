@@ -4,6 +4,7 @@
 #include "constants.hpp"
 #include "globals.hpp"
 #include "inference_engine.hpp"
+#include "asr_model.hpp"
 #include "llm_chat.hpp"
 #include "llm_chat_message.hpp"
 #include "llm_chat_parameters.hpp"
@@ -33,6 +34,7 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 
 	ClassDB::register_class<InferenceEngine>();
 	ClassDB::register_class<LLMModel>();
+	ClassDB::register_class<ASRModel>();
 	ClassDB::register_class<LLMChatParameters>();
 	ClassDB::register_class<LLMChat>();
 	ClassDB::register_class<LLMChatMessage>();

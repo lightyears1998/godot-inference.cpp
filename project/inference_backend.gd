@@ -2,9 +2,10 @@ extends Node
 
 
 signal model_loaded(model: LLMModel)
-
+signal asr_model_loaded(model: ASRModel)
 
 var _is_ready := false
+var asr_model: ASRModel
 
 
 func _ready() -> void:
@@ -15,6 +16,10 @@ func _ready() -> void:
 
 	InferenceEngine.request_load_model(model_path)
 	await _report_load_progress()
+	asr_model = InferenceEngine.request_load_asr_model(asr_model_path)
+	await asr_model.model_loaded
+	asr_model_loaded.emit(asr_model)
+	print('asr model loaded')
 
 
 func _physics_process(_delta: float) -> void:

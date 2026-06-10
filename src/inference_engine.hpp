@@ -10,8 +10,9 @@
 #include <shared_mutex>
 #include <string>
 
-// It is design to handle a single model right now.
-// docs/TODO.md
+class ASRModel;
+
+// TODO Add support for multiple models
 class InferenceEngine final : public godot::Object {
 	GDCLASS(InferenceEngine, godot::Object)
 
@@ -27,6 +28,7 @@ public:
 	void free_backend();
 
 	void request_load_model(const godot::String& path);
+	godot::Ref<ASRModel> request_load_asr_model(const godot::String& path);
 	void unload_model();
 	ModelStatus model_load_status();
 	float model_load_progress();

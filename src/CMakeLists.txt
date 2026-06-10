@@ -20,6 +20,8 @@ add_library(${LIBNAME} SHARED
         globals.cpp
         benchmark.cpp
         benchmark.hpp
+        asr_model.cpp
+        asr_model.hpp
 )
 
 target_link_libraries(${LIBNAME} PRIVATE
@@ -31,6 +33,7 @@ target_link_libraries(${LIBNAME} PRIVATE
         Microsoft.GSL::GSL
         llama
         simdutf::simdutf
+        miniaudio
 )
 
 target_include_directories(${LIBNAME} PRIVATE

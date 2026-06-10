@@ -1,11 +1,13 @@
 #include "inference_engine.hpp"
 
+#include "asr_model.hpp"
 #include "constants.hpp"
 #include "godot_cpp/classes/project_settings.hpp"
 #include "llm_model.hpp"
 #include "utils.hpp"
 
 #include <llama.h>
+#include <whisper.h>
 #include <boost/current_function.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <iostream>
@@ -20,6 +22,7 @@ void InferenceEngine::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("tick"), &InferenceEngine::tick);
 	ClassDB::bind_method(D_METHOD("request_load_model", "path"), &InferenceEngine::request_load_model);
+	ClassDB::bind_method(D_METHOD("request_load_asr_model", "path"), &InferenceEngine::request_load_asr_model);
 	ClassDB::bind_method(D_METHOD("unload_model"), &InferenceEngine::unload_model);
 	ClassDB::bind_method(D_METHOD("get_model_load_status"), &InferenceEngine::model_load_status);
 	ClassDB::bind_method(D_METHOD("get_model_load_progress"), &InferenceEngine::model_load_progress);
@@ -34,13 +37,16 @@ void InferenceEngine::init_backend() {
 
 	std::unique_lock lock(mutex_);
 
-	llama_log_set([](enum ggml_log_level level, const char* text, void*) {
+	constexpr auto log_handler = [](enum ggml_log_level level, const char* text, void*) {
 		if (level < GGML_LOG_LEVEL_WARN) {
 			return;
 		}
 
 		print_line(String(text).rstrip("\n"));
-	}, nullptr);
+	};
+
+	llama_log_set(log_handler, nullptr);
+	whisper_log_set(log_handler, nullptr);
 
 	llama_backend_init();
 }
@@ -87,6 +93,11 @@ void InferenceEngine::request_load_model(const String& path) {
 	background_thread_ = std::jthread([=, this](std::stop_token stoken) {
 		load_model(std::move(stoken), ustr(path));
 	});
+}
+
+Ref<ASRModel> InferenceEngine::request_load_asr_model(const godot::String &path) {
+	Ref<ASRModel> model = memnew(ASRModel(path));
+	return model;
 }
 
 void InferenceEngine::unload_model() {
