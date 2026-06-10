@@ -3,12 +3,17 @@
 #include <fmt/format.h>
 #include <ggml.h>
 #include <llama.h>
+#include <miniaudio/miniaudio.h>
+#include <whisper.h>
 #include <chrono>
 #include <clocale>
+#include <filesystem>
+#include <fstream>
+#include <gsl/util>
 #include <iostream>
 #include <string>
-#include <vector>
 #include <tracy/Tracy.hpp>
+#include <vector>
 
 int test1(std::string model_path) {
 	// load dynamic backends
@@ -249,6 +254,102 @@ void test_double_free(std::string model_path) {
 	llama_backend_free();
 }
 
+void test2(std::string model_path) {
+	printf("Model: %s\n", model_path.c_str());
+	printf("CWD: %s\n", std::filesystem::current_path().string().c_str());
+
+	constexpr auto log_cb = [](ggml_log_level level, const char *text, void *_) {
+		if (level < GGML_LOG_LEVEL_WARN) {
+			return;
+		}
+
+		printf("%s\n", text);
+	};
+
+	whisper_log_set(log_cb, nullptr);
+
+	auto ctx_params = whisper_context_default_params();
+	auto ctx = whisper_init_from_file_with_params(model_path.c_str(), ctx_params);
+	auto _ = gsl::finally([&]() {
+		whisper_free(ctx);
+	});
+
+	auto params = whisper_full_default_params(WHISPER_SAMPLING_BEAM_SEARCH);
+	params.language = "auto";
+	params.detect_language = true;
+
+	std::ifstream ifs("test.wav", std::ios::binary);
+
+	ifs.seekg(0, std::ios::end);
+	auto size = (size_t)ifs.tellg() - 44;
+	ifs.seekg(44, std::ios::beg);
+
+	std::vector<int16_t> pcm16(size / sizeof(int16_t));
+	ifs.read(reinterpret_cast<char*>(pcm16.data()), size);
+
+	std::vector<float> pcmf32;
+
+	// ma_decoder_config cfg = ma_decoder_config_init(ma_format_f32, 1, 16000);
+	// ma_decoder decoder;
+	// auto ret = ma_decoder_init_memory(pcm16.data(), pcm16.size() * sizeof(int16_t), &cfg, &decoder);
+	// if (ret != MA_SUCCESS) {
+	// 	printf("ma_decoder_init_memory failed: %d\n", ret);
+	// 	return;
+	// }
+	// auto _ = gsl::finally([&]() {
+	// 	ma_decoder_uninit(&decoder);
+	// });
+
+	ma_data_converter_config cfg = ma_data_converter_config_init(ma_format_s16, ma_format_f32, 2, 1, 44100, 16000);
+	ma_data_converter cvt;
+	auto ret = ma_data_converter_init(&cfg, nullptr, &cvt);
+	if (ret != MA_SUCCESS) {
+		printf("ma_data_converter_init: %d\n", ret);
+	}
+	auto _free_converter = gsl::finally([&]() {
+		ma_data_converter_uninit(&cvt, nullptr);
+	});
+
+	ma_uint64 n_input_frames = pcm16.size() / 2;
+	ma_uint64 n_output_frames = static_cast<double>(n_input_frames) / 44100 * 16000;
+	pcmf32.resize(n_output_frames);
+
+	ret = ma_data_converter_process_pcm_frames(&cvt, pcm16.data(), &n_input_frames, pcmf32.data(), &n_output_frames);
+	if (ret != MA_SUCCESS) {
+		printf("ma_data_converter_process_pcm_frames failed! %d\n", ret);
+	}
+
+	pcmf32.resize(n_output_frames);
+
+	// std::ofstream ofs("test_out.pcm", std::ios::binary);
+	// ofs.write(reinterpret_cast<const char *>(pcmf32.data()), pcmf32.size() * sizeof(float));
+
+	if (params.detect_language) {
+		if (whisper_full_parallel(ctx, params, pcmf32.data(), pcmf32.size(), 1) != 0) {
+			printf("failed!\n");
+			return;
+		}
+		params.detect_language = false;
+
+		auto lang_id = whisper_full_lang_id(ctx);
+		const char* lang_str = whisper_lang_str(lang_id);
+		printf("auto-detected lang: %s\n", lang_str);
+	}
+
+	if (whisper_full_parallel(ctx, params, pcmf32.data(), pcmf32.size(), 1) != 0) {
+		printf("failed!\n");
+		return;
+	}
+
+	int n_segments = whisper_full_n_segments(ctx);
+	for (int i = 0; i < n_segments; i++) {
+		const char* text = whisper_full_get_segment_text(ctx, i);
+		printf("[%s]", text);
+	}
+	printf("\n");
+}
+
+
 // .\llama-server.exe -m .\models\Qwen3.5-4B-Q4_K_M.gguf --reasoning off -ctk q8_0 -ctv q8_0
 // --ctx-size 16384
 // --ctx-size 32768 40t/s Best performance
@@ -274,7 +375,8 @@ int main(int argc, char** argv) {
 	tracy::StartupProfiler();
 #endif
 
-	test1(model_path);
+	// test1(model_path);
+	test2(model_path);
 
 #if TRACY_ENABLE
 	tracy::ShutdownProfiler();

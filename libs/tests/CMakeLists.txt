@@ -7,6 +7,7 @@ target_link_libraries(tests PRIVATE
         fmt::fmt
         llama
         Tracy::TracyClient
+        miniaudio
 )
 
 install(TARGETS tests DESTINATION tools)
