@@ -3,7 +3,7 @@
 #include "asr_model.hpp"
 #include "constants.hpp"
 #include "godot_cpp/classes/project_settings.hpp"
-#include "llm_model.hpp"
+#include "llm.hpp"
 #include "utils.hpp"
 
 #include <llama.h>

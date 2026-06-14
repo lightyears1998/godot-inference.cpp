@@ -1,8 +1,8 @@
 #pragma once
 
-#include "llm_chat_message.hpp"
-#include "llm_model.hpp"
 #include "core/chat_message.hpp"
+#include "llm.hpp"
+#include "llm_chat_message.hpp"
 
 #include <llama.h>
 #include <atomic>

@@ -1,8 +1,8 @@
 #include "llm_chat.hpp"
 
+#include "llm.hpp"
 #include "llm_chat_message.hpp"
 #include "llm_chat_parameters.hpp"
-#include "llm_model.hpp"
 #include "utils.hpp"
 
 #include <llama.h>

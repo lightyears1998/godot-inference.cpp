@@ -1,14 +1,14 @@
 #pragma once
 
-#include "llm_model.hpp"
+#include "llm.hpp"
 
 #include <atomic>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
-#include <thread>
 #include <optional>
 #include <shared_mutex>
 #include <string>
+#include <thread>
 
 class ASRModel;
 

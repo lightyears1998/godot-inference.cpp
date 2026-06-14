@@ -5,8 +5,8 @@ add_library(${LIBNAME} SHARED
         utils.hpp
         inference_engine.cpp
         inference_engine.hpp
-        llm_model.cpp
-        llm_model.hpp
+        llm.cpp
+        llm.hpp
         llm_chat.hpp
         llm_chat.cpp
         llm_chat_message.cpp
