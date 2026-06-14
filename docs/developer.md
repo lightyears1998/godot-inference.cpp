@@ -1,5 +1,7 @@
 # Developer Docs
 
+The build system is based on CMake; for details, refer to `CMakePresets.json`. Typically you will want to use the `release_template_debug` and `release_template_release` presets.
+
 ## Optional: Install dependencies via vcpkg
 
 ### ggml with blas and CUDA
@@ -15,6 +17,17 @@ References:
 
 - <https://github.com/ggml-org/llama.cpp/blob/master/docs/build.md#override-compute-capability-specifications>
 - CMAKE_CUDA_ARCHITECTURES <https://github.com/ggml-org/llama.cpp/blob/4f0e43da6f8f6e9390d88409610098ec2d2dc5c7/ggml/src/ggml-cuda/CMakeLists.txt#L8>
+
+## Compile
+
+``` shell
+# configure
+cmake --preset release_template_debug
+
+# build
+cmake --build build/release_template_debug --config RelWithDebInfo
+```
+
 
 ## Adding document for the plugin
 

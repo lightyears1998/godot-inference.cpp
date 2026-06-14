@@ -12,9 +12,15 @@ It is built on top of GGML, llama.cpp and whisper.cpp.
 - Or when you want to build complex inference pipelines and make a lot of customizations.
 - Or when you need to ship your fine-tuned model directly with the game binary. Since models are typically several gigabytes, the library’s added file size is negligible in comparison.
 
-I've done my best to make it reliable, but for serious production work, check out the alternatives below.
-
-### Alternatives
+I've done my best to make it reliable, but for serious production work, consider these alternatives instead:
 
 - Have users set up a local API or use a web API. This may be a better approach, as it reduces the game’s distribution size and lets users customize model parameters.
 - [LLamaSharp](https://github.com/SciSharp/LLamaSharp) may be a better fit for production use.
+
+## Usage
+
+See [the example project](project).
+
+## Build from source
+
+See [Developer docs](docs/developer.md).
