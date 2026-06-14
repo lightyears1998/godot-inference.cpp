@@ -12,42 +12,24 @@
 
 class ASRModel;
 
-// TODO Add support for multiple models
+// TODO Add support for remote api endpoint
+// TODO Add ModelBase
 class InferenceEngine final : public godot::Object {
 	GDCLASS(InferenceEngine, godot::Object)
 
 public:
-	enum ModelStatus {
-		MODEL_EMPTY = 0,
-		MODEL_LOADING = 1,
-		MODEL_READY = 2,
-	};
-
 	void init_backend();
 	void tick();
 	void free_backend();
 
-	void request_load_model(const godot::String& path);
+	godot::Ref<LLM> request_load_llm(const godot::String& path);
 	godot::Ref<ASRModel> request_load_asr_model(const godot::String& path);
-	void unload_model();
-	ModelStatus model_load_status();
-	float model_load_progress();
-	godot::Ref<LLMModel> model();
-	godot::String last_error();
+	void use_remote_llm_endpoint(); // TODO
 
 protected:
 	static void _bind_methods();
 
 private:
-	std::shared_mutex mutex_;
-	godot::Ref<LLMModel> model_;
-	std::jthread background_thread_;
-	std::atomic<ModelStatus> model_status_ = MODEL_EMPTY;
-	std::atomic<float> load_progress_ = 0;
-	std::string last_error_;
-
-	void load_model(std::stop_token, const std::string& path);
-	void model_loaded(const godot::String &model_path, const godot::Ref<LLMModel>& model);
+	std::mutex mutex_;
+	std::set<godot::ObjectID> model_ids_; // TODO
 };
-
-VARIANT_ENUM_CAST(InferenceEngine::ModelStatus);

@@ -63,7 +63,7 @@ offset_bottom = 51.0
 [node name="ClearHistoryButton" type="Button" parent="." unique_id=163527412]
 offset_left = 920.0
 offset_top = 560.0
-offset_right = 1093.0
+offset_right = 1088.0
 offset_bottom = 608.0
 text = "Clear History"
 
@@ -82,3 +82,16 @@ bus = &"MicRecord"
 
 [node name="MicStreamPlayer" type="AudioStreamPlayer" parent="ToggleMicButton" unique_id=1001055898]
 unique_name_in_owner = true
+
+[node name="ModelLoadProgressBar" type="ProgressBar" parent="." unique_id=1267750242]
+unique_name_in_owner = true
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -27.0
+grow_horizontal = 2
+grow_vertical = 0
+max_value = 1.0
+step = 0.001
+value = 0.34

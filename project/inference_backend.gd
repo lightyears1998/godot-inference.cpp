@@ -1,57 +1,33 @@
 extends Node
 
 
-signal model_loaded(model: LLMModel)
+signal llm_loaded(model: LLM)
 signal asr_model_loaded(model: ASRModel)
 
-var _is_ready := false
+var llm: LLM
 var asr_model: ASRModel
 
 
 func _ready() -> void:
-	InferenceEngine.model_loaded.connect(_on_model_loaded)
+	_load_llm()
+	_load_asr()
 
+
+func _load_llm():
 	var model_path: String = ProjectSettings.get_setting("llama.cpp/model_path")
-	var asr_model_path: String = ProjectSettings.get_setting("llama.cpp/asr_model_path")
+	llm = InferenceEngine.request_load_llm(model_path)
+	await llm.model_loaded
+	llm_loaded.emit(llm)
+	print("llm_loaded")
 
-	InferenceEngine.request_load_model(model_path)
-	await _report_load_progress()
+
+func _load_asr():
+	var asr_model_path: String = ProjectSettings.get_setting("llama.cpp/asr_model_path")
 	asr_model = InferenceEngine.request_load_asr_model(asr_model_path)
 	await asr_model.model_loaded
 	asr_model_loaded.emit(asr_model)
-	print('asr model loaded')
+	print("asr_model_loaded")
 
 
 func _physics_process(_delta: float) -> void:
 	InferenceEngine.tick()
-
-
-func _report_load_progress() -> void:
-	var t_start := Time.get_ticks_msec()
-
-	while is_inside_tree():
-		var status := InferenceEngine.get_model_load_status()
-		var progress := InferenceEngine.get_model_load_progress()
-		print('model load progress: ', progress)
-		if status != InferenceEngine.MODEL_LOADING:
-			break
-		await get_tree().create_timer(1).timeout
-
-	if InferenceEngine.get_model_load_status() == InferenceEngine.MODEL_READY:
-		print('model loaded')
-
-		var t_end := Time.get_ticks_msec()
-		print('time to load model: ', t_end - t_start, 'ms')
-
-		_is_ready = true
-		model_loaded.emit(InferenceEngine.get_model())
-
-
-func wait_until_ready() -> void:
-	if not _is_ready:
-		await model_loaded
-	return
-
-
-func _on_model_loaded(path: String, model: LLMModel):
-	print("_on_model_loaded: ", path, ": ", model)

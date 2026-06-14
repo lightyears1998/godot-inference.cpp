@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-class LLMModel;
+class LLM;
 class LLMChatParameters;
 
 // TODO optimize data-flow
@@ -28,7 +28,7 @@ public:
 	};
 
 	LLMChat() = default;
-	LLMChat(const godot::Ref<LLMModel> &model, const godot::Ref<LLMChatParameters> &params);
+	LLMChat(const godot::Ref<LLM> &model, const godot::Ref<LLMChatParameters> &params);
 	~LLMChat() override;
 
 	// props
@@ -65,7 +65,7 @@ private:
 	std::atomic<bool> cancel_requested_;
 
 	// ref
-	godot::Ref<LLMModel> model_ = nullptr;
+	godot::Ref<LLM> model_ = nullptr;
 	godot::Ref<LLMChatParameters> params_;
 	std::unique_ptr<llama_context, decltype(&llama_free)> ctx_ = { nullptr, &llama_free };
 	std::unique_ptr<llama_sampler, decltype(&llama_sampler_free)> sampler_ { nullptr, &llama_sampler_free };

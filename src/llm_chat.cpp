@@ -5,15 +5,14 @@
 #include "llm_model.hpp"
 #include "utils.hpp"
 
-#include <tracy/Tracy.hpp>
 #include <llama.h>
 #include <simdutf.h>
 #include <boost/assert/source_location.hpp>
 #include <boost/current_function.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
-#include <shared_mutex>
 #include <gsl/gsl>
+#include <tracy/Tracy.hpp>
 
 using namespace godot;
 
@@ -28,8 +27,8 @@ void LLMChat::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("cancel_generation"), &LLMChat::cancel_generation);
 	ClassDB::bind_method(D_METHOD("clear_history"), &LLMChat::clear_history);
 
-	ClassDB::bind_method(D_METHOD("get_params"), &LLMChat::params);
 	ClassDB::bind_method(D_METHOD("set_parameters", "params"), &LLMChat::set_parameters);
+	ClassDB::bind_method(D_METHOD("get_params"), &LLMChat::params);
 	ClassDB::bind_method(D_METHOD("get_history"), &LLMChat::history);
 	ClassDB::bind_method(D_METHOD("get_last_reply"), &LLMChat::last_reply);
 	ClassDB::bind_method(D_METHOD("is_valid"), &LLMChat::is_valid);
@@ -41,7 +40,7 @@ void LLMChat::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("reply_generated", PropertyInfo(Variant::STRING, "content")));
 }
 
-LLMChat::LLMChat(const godot::Ref<LLMModel> &model, const godot::Ref<LLMChatParameters> &params)
+LLMChat::LLMChat(const godot::Ref<LLM> &model, const godot::Ref<LLMChatParameters> &params)
 	: model_(model), params_(params) {
 	print_line(BOOST_CURRENT_FUNCTION);
 

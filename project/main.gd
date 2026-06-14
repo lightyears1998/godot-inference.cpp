@@ -7,6 +7,7 @@ extends Node
 @onready var toggle_mic_button: Button = %ToggleMicButton
 @onready var mic_stream_player: AudioStreamPlayer = %MicStreamPlayer
 @onready var mic_stream_recorder: AudioStreamPlayer = %MicStreamRecorder
+@onready var model_load_progress_bar: ProgressBar = %ModelLoadProgressBar
 
 @onready var mic_bus_idx := AudioServer.get_bus_index("MicRecord")
 @onready var record_effect: AudioEffectRecord = AudioServer.get_bus_effect(mic_bus_idx, 0)
@@ -16,12 +17,23 @@ var asr_model: ASRModel
 
 
 func _ready() -> void:
+	_report_model_load_progress()
 	user_text_edit.text_commited.connect(submit_text)
 	user_confirm_button.pressed.connect(func (): user_text_edit.commit_text())
 	clear_history_button.pressed.connect(clear_chat_history)
 	toggle_mic_button.pressed.connect(_toggle_mic_recording)
 	_setup_chat()
 	InferenceBackend.asr_model_loaded.connect(_on_asr_model_loaded)
+
+
+func _report_model_load_progress():
+	while true:
+		var progress := InferenceBackend.llm.get_load_progress()
+		model_load_progress_bar.value = progress
+		await get_tree().process_frame
+		if progress >= 1.0:
+			print('model loaded')
+			return
 
 
 func _on_asr_model_loaded(model: ASRModel) -> void:
@@ -45,8 +57,8 @@ func clear_chat_history() -> void:
 
 
 func _setup_chat() -> void:
-	await InferenceBackend.model_loaded
-	var model := InferenceEngine.get_model()
+	await InferenceBackend.llm_loaded
+	var model := InferenceBackend.llm
 
 	var t1 = Time.get_ticks_msec()
 	chat = model.start_general_chat()

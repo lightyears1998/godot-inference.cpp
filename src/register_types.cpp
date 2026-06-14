@@ -33,7 +33,7 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level)
 	main_thread_id = std::this_thread::get_id();
 
 	ClassDB::register_class<InferenceEngine>();
-	ClassDB::register_class<LLMModel>();
+	ClassDB::register_class<LLM>();
 	ClassDB::register_class<ASRModel>();
 	ClassDB::register_class<LLMChatParameters>();
 	ClassDB::register_class<LLMChat>();
